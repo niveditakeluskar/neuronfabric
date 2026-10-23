@@ -1,0 +1,102 @@
+# Source specification manifest.
+# Originals are NOT stored in Git (FND-013, ADR-031). They are identified by SHA-256 and their location at registration.
+# To check that your copies are unmodified:
+#   python3 tools/governance/validate_governance.py --spec-root "<directory containing the originals>"
+
+schema_version: 1
+document: specification_manifest
+registered_on: "2026-10-23"
+registered_location: "<workspace>/Neuronfabric/ (parent of Code/; local workstation, outside this repository)"
+
+documents:
+- id: SPEC-001
+  title: NeuroGuard Unified Technical Design Specification (TDS)
+  document_id: NG-TDS-000
+  version: 2.0.0-candidate
+  date: "2026-10-23"
+  classification: Internal / Controlled
+  role: governing
+  authority_note: Human-readable design authority (TDS §F9). Status "Design-ready candidate". Not production-ready, not independently verified. Sign-off register is all PENDING.
+  files:
+    - {name: NeuroGuard_TDS_v2_Development_Ready_Candidate.docx, format: docx, canonical: true, sha256: 4091ced431b2def4ec1a89ce75241e9023c0df0265ea8afaedb732f81014b3ee, bytes: 62157}
+    - {name: "NeuroGuard_TDS_v2_Development_Ready_Candidate (1).docx", format: docx, canonical: false, duplicate_of: NeuroGuard_TDS_v2_Development_Ready_Candidate.docx, sha256: 4091ced431b2def4ec1a89ce75241e9023c0df0265ea8afaedb732f81014b3ee, bytes: 62157}
+    - {name: NeuroGuard_TDS_v2_Development_Ready_Candidate.pdf, format: pdf, canonical: false, rendering_of: NeuroGuard_TDS_v2_Development_Ready_Candidate.docx, sha256: 66aea3f062a07fef1328fa9cda7459414f36e2a6a79860089b2c8f5eb07891a9, bytes: 287904}
+  extraction:
+    method: "macOS textutil -convert txt (docx) and PDF page text; section structure and spot-checked content compared (no full automated diff: no PDF text tool installed)"
+    output: not committed (scratch only)
+    sections_extracted: [document control, executive decisions ADR-001..008, scope & assumptions, A1, B1, B2, B2.1, C1, C1.1, C1.2, C2, C3, C4, C5, C6, D1, D1.1, D2, D2.1, D3, D3.1, D4, D5, E1, E2, E2.1, E3, E4, F1, F2, F3, F4, F5, F6, F7, F8, F9, sign-off register]
+    derived_artifacts:
+      - governance/requirements_registry.yaml
+      - governance/decisions/decision_register.yaml
+      - governance/traceability.yaml
+      - governance/findings_register.yaml
+      - governance/approvals/approval_register.yaml
+      - docs/02-system-architecture/architecture_overview.md
+      - docs/20-release-management/release_gates.md
+
+- id: SPEC-002
+  title: AI Data-Center Optimization & Trusted Agent Security — Master Plan
+  document_id: null
+  version: "6.0"
+  date: "2026-10-15"
+  classification: CONFIDENTIAL
+  role: related-context
+  authority_note: Different product scope from SPEC-001 (FND-001). Not used as a requirements source until ADR-029 decides.
+  files:
+    - {name: AI_Data_Center_Optimization_Identity_First_Security_Master_Plan_v6.docx, format: docx, canonical: true, sha256: 0f89ea7ce8bb1ef61fc561671f5a6d83dbe45d1b212ccc2b9d7321aa52965c86, bytes: 47736}
+    - {name: AI_Data_Center_Optimization_Identity_First_Security_Master_Plan_v6.pdf, format: pdf, canonical: false, rendering_of: AI_Data_Center_Optimization_Identity_First_Security_Master_Plan_v6.docx, sha256: 633e687848f15d281cd231dec155f9ccb360e539806b819dc4d848a23709d874, bytes: 142030}
+  extraction:
+    method: PDF page text, cross-checked with textutil docx extraction
+    output: not committed
+    derived_artifacts: [governance/findings_register.yaml, governance/risks/risk_register.yaml]
+
+- id: SPEC-003
+  title: NeuroGuard Unified Technical Design Specification v1.0
+  document_id: null
+  version: 1.0-candidate
+  date: "2026-10-23"
+  classification: unspecified
+  role: superseded
+  superseded_by: SPEC-001
+  authority_note: Superseded by TDS v2 (TDS v2 document control). Used only to detect dropped details (FND-015).
+  files:
+    - {name: NeuroGuard_Unified_Technical_Design_Specification_v1.docx, format: docx, canonical: true, sha256: 1a18892c63bfbd48b0d72ec70380c598ba9fa7eadf2389b96a69b8174fe2fb17, bytes: 61703}
+
+- id: SPEC-004
+  title: eBPF AI Infrastructure Optimization — Proposal and Technical POC
+  document_id: null
+  version: "1.0"
+  date: "2026-10-15"
+  classification: unspecified
+  role: related-context
+  authority_note: Earlier optimization-product proposal related to SPEC-002. Not a NeuroGuard requirements source.
+  files:
+    - {name: eBPF_AI_Infrastructure_Optimization_Proposal_and_Technical_POC.docx, format: docx, canonical: true, sha256: 4856ed1b634dbc4524fec546415576bfabb3e1d68fc02daedcaf09363fcfc841, bytes: 50041}
+
+- id: SPEC-005
+  title: AI Infrastructure Investor Executive Summary (2 pages)
+  document_id: null
+  version: null
+  date: "2026-10"
+  classification: CONFIDENTIAL
+  role: related-context
+  authority_note: Investor summary for the SPEC-002 product. Not an engineering source.
+  files:
+    - {name: AI_Infrastructure_Investor_Executive_Summary_2_Pages.docx, format: docx, canonical: true, sha256: 0b2d586acf7fdf43114c6e08f94e2aa727e1caf8b49985fd6fb28e82fb75b022, bytes: 40522}
+
+- id: SPEC-006
+  title: Global Jump Server Market Assessment 2026–2030
+  document_id: null
+  version: null
+  date: "2026"
+  classification: unspecified
+  role: related-context
+  authority_note: Market context for the PAM/jump-server capability (TDS §C6). Not an engineering source.
+  files:
+    - {name: Global_Jump_Server_Market_Assessment_2026_2030-2.docx, format: docx, canonical: true, sha256: f2473fe19fc3f813852b85c0a7478d22359a2699c2d87284aae510c310d5f6da, bytes: 49686}
+
+not_documents:
+  - pattern: "~$*.docx"
+    note: "Microsoft Word owner/lock files (162 bytes each), present for four documents. They mean those documents were open in Word at registration time, so the .docx may be edited later. Re-verify hashes before relying on them."
+  - name: "~$PF_AI_Optimization_12_Month_Costed_Business_and_Technical_Plan.docx"
+    note: Lock file for a document that is NOT present ("eBPF AI Optimization 12-Month Costed Business and Technical Plan"). Possibly the "master development plan" referenced by Prompt 00 (FND-002).

@@ -1,0 +1,31 @@
+# Approval register. This is the ONLY place approvals are recorded. An item may be APPROVED only if it is listed here.
+#
+# Entry format (append-only; never edit or delete an existing approval — add a revocation entry instead):
+#   - id: APR-NNN
+#     subject: <requirement / ADR / contract / gate ID>
+#     subject_version: <commit SHA or document version approved>
+#     decision: APPROVED | REJECTED | REVOKED
+#     approver: <full name>            # a real, named person
+#     role: <TDS role>
+#     date: "YYYY-MM-DD"
+#     evidence: [<paths or links>]
+#     notes: <optional>
+
+schema_version: 1
+document: approval_register
+
+# TDS v2 §F9 sign-off register, as of 2026-10-23. Every entry is PENDING in the source.
+tds_signoff_register:
+  - {approver_role: Product Owner, required_decision: Scope and launch feature boundaries, status: PENDING}
+  - {approver_role: Hardware Lead, required_decision: OEM reference and BOM, status: PENDING}
+  - {approver_role: OS Lead, required_decision: Yocto BSP and secure boot, status: PENDING}
+  - {approver_role: Kernel Lead, required_decision: eBPF hooks and ABI, status: PENDING}
+  - {approver_role: Windows Lead, required_decision: ETW/WFP driver path, status: PENDING}
+  - {approver_role: Platform Lead, required_decision: API, tenancy and data model, status: PENDING}
+  - {approver_role: Security Lead, required_decision: Threat model and prevention safety, status: PENDING}
+  - {approver_role: QA Lead, required_decision: Test evidence and exit gates, status: PENDING}
+
+# Role → person assignments. None assigned yet (FND-014).
+role_assignments: []
+
+approvals: []

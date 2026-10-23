@@ -1,0 +1,68 @@
+# Development lifecycle definition (machine-readable). Human explanation: CONTRIBUTING.md §1.
+# Applies to requirements, decisions, contracts and backlog work items.
+
+schema_version: 1
+document: workflow
+
+states:
+  - {id: DRAFT, terminal: false, description: Captured; may be incomplete.}
+  - {id: REVIEW, terminal: false, description: Complete enough to decide; awaiting approval.}
+  - {id: APPROVED, terminal: false, description: Baselined; implementation may begin.}
+  - {id: IMPLEMENTING, terminal: false, description: Work in progress on a linked branch/PR.}
+  - {id: IMPLEMENTED, terminal: false, description: Code merged to main.}
+  - {id: TESTED, terminal: false, description: Tests executed in the defined environment with recorded results.}
+  - {id: VERIFIED, terminal: false, description: Acceptance criteria met; evidence reviewed by a named reviewer.}
+  - {id: RELEASED, terminal: true, description: Shipped through an approved program gate.}
+  # Decision-only terminal states
+  - {id: SUPERSEDED, terminal: true, description: Decision replaced by a newer ADR (decisions only).}
+  - {id: REJECTED, terminal: true, description: Decision or requirement rejected (with recorded reason).}
+
+transitions:
+  - from: DRAFT
+    to: REVIEW
+    evidence: [owner assigned, acceptance_criteria present, verification_method present, dependencies listed, source_refs present]
+    authority: item owner
+  - from: REVIEW
+    to: APPROVED
+    evidence: [approval record in governance/approvals/approval_register.yaml, no OPEN finding listing this item in blocks]
+    authority: approving lead for the owner role; security-impacting items also need the Security Lead
+  - from: REVIEW
+    to: REJECTED
+    evidence: [recorded reason]
+    authority: approving lead
+  - from: APPROVED
+    to: IMPLEMENTING
+    evidence: [linked branch or PR, all dependencies APPROVED or later, consumed contracts APPROVED]
+    authority: implementer
+  - from: IMPLEMENTING
+    to: IMPLEMENTED
+    evidence: [merged PR, traceability.yaml updated with module paths]
+    authority: CODEOWNER reviewers
+  - from: IMPLEMENTED
+    to: TESTED
+    evidence: [evidence record with result PASS, commit, environment_id, command output]
+    authority: QA Lead or delegate
+  - from: TESTED
+    to: VERIFIED
+    evidence: [evidence record reviewed by a named reviewer who is not the implementer, acceptance criteria met]
+    authority: QA Lead + item owner
+  - from: VERIFIED
+    to: RELEASED
+    evidence: [program gate approval record referencing the evidence bundle]
+    authority: release gate approvers
+  - from: APPROVED
+    to: SUPERSEDED
+    evidence: [superseding ADR APPROVED]
+    authority: approving lead
+  # Backward transitions (reason required)
+  - {from: "*", to: DRAFT, evidence: [recorded reason; change to requirement or decision], authority: item owner}
+  - {from: TESTED, to: IMPLEMENTING, evidence: [defect or regression reference], authority: QA Lead}
+  - {from: VERIFIED, to: IMPLEMENTING, evidence: [defect or regression reference], authority: QA Lead}
+
+test_result_states: [NOT_RUN, PASS, FAIL, BLOCKED, ERROR]
+default_test_result: NOT_RUN
+
+branch_naming:
+  pattern: "^(feat|fix|contract|adr|docs|test|chore|spike)/((NG-[A-Z0-9]+-[0-9]{3})|(WI-[0-9]{3})|(ADR-[0-9]{3})|(FND-[0-9]{3}))-[a-z0-9-]+$"
+  release_pattern: "^release/[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+  notes: spike/* branches are prototypes and never merge to main without re-implementation against approved contracts.

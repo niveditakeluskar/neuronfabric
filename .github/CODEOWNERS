@@ -1,0 +1,54 @@
+# CODEOWNERS — maps paths to TDS v2 role owners.
+#
+# WARNING (FND-012): the team handles below are PLACEHOLDERS. This repository is
+# owned by a personal GitHub account, and teams exist only inside an organization.
+# GitHub ignores rules with unknown owners. Replace these with real users or teams
+# once named owners are assigned (backlog WI-003). Branch protection is NOT verified.
+#
+# Later rules override earlier ones.
+
+*                                   @neuronfabric/architecture
+
+# Governance and source specifications
+/governance/                        @neuronfabric/architecture @neuronfabric/qa
+/governance/risks/                  @neuronfabric/architecture @neuronfabric/security
+/docs/00-source-specifications/     @neuronfabric/architecture
+/CLAUDE.md                          @neuronfabric/architecture
+/.claude/                           @neuronfabric/architecture
+/SECURITY.md                        @neuronfabric/security
+
+# Contracts (TDS §F2 owners)
+/contracts/                         @neuronfabric/platform @neuronfabric/architecture
+/contracts/proto/neuroguard/v1/     @neuronfabric/platform @neuronfabric/security
+
+# Hardware and appliance OS
+/hardware/                          @neuronfabric/hardware
+/appliance/                         @neuronfabric/os @neuronfabric/security
+/operations/manufacturing/          @neuronfabric/hardware
+
+# Sensors
+/sensors/linux/ebpf/                @neuronfabric/kernel @neuronfabric/security
+/sensors/linux/loader/              @neuronfabric/kernel @neuronfabric/security
+/sensors/linux/agent/               @neuronfabric/kernel
+/sensors/windows/                   @neuronfabric/windows @neuronfabric/security
+
+# Integrations and gateway
+/integrations/kubernetes/           @neuronfabric/k8s
+/integrations/network/              @neuronfabric/network
+/gateway/pam/                       @neuronfabric/platform @neuronfabric/security
+
+# Central Brain
+/brain/                             @neuronfabric/platform
+/brain/services/policy/             @neuronfabric/security @neuronfabric/platform
+/brain/services/response/           @neuronfabric/security @neuronfabric/platform
+/brain/services/enrollment/         @neuronfabric/security @neuronfabric/platform
+/brain/analytics/                   @neuronfabric/detection
+
+# Deployment, release, tests, security assurance
+/deploy/                            @neuronfabric/platform
+/release/                           @neuronfabric/devsecops @neuronfabric/security
+/.github/                           @neuronfabric/devsecops
+/tools/                             @neuronfabric/devsecops
+/tests/                             @neuronfabric/qa
+/security/                          @neuronfabric/security
+/operations/                        @neuronfabric/platform

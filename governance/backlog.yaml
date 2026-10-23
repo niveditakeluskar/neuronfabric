@@ -1,0 +1,240 @@
+# Dependency-aware implementation backlog: Stage 0 → G0 → G1.
+# kind: decision (human/ADR), env (environment), design, contract, spike (isolated prototype, not merged to main), tooling
+# agent: owning Claude agent in .claude/agents/ (null = human-only action)
+# Status uses governance/workflow.yaml states. Every item is DRAFT until the Prompt 00 baseline is approved.
+
+schema_version: 1
+document: backlog
+
+items:
+- id: WI-000
+  title: Review and approve the Prompt 00 repository baseline
+  kind: decision
+  owner: Principal Systems Architect
+  agent: null
+  requirements: [NG-REL-007]
+  depends_on: []
+  gate: G0
+  status: DRAFT
+
+- id: WI-001
+  title: Decide product scope boundary vs Master Plan v6 (ADR-029)
+  kind: decision
+  owner: Product Owner
+  agent: null
+  requirements: [NG-REL-007]
+  decisions: [ADR-029]
+  resolves: [FND-001]
+  depends_on: []
+  gate: G0
+  status: DRAFT
+
+- id: WI-002
+  title: Decide source-specification storage and repository visibility (ADR-031)
+  kind: decision
+  owner: Principal Systems Architect
+  agent: null
+  decisions: [ADR-031]
+  resolves: [FND-013]
+  depends_on: []
+  gate: G0
+  status: DRAFT
+
+- id: WI-003
+  title: Assign named people to all roles; create real GitHub owners; update CODEOWNERS
+  kind: decision
+  owner: Product Owner
+  agent: null
+  resolves: [FND-014, FND-012]
+  depends_on: []
+  gate: G0
+  status: DRAFT
+
+- id: WI-004
+  title: Configure and API-verify branch protection on main and release/*
+  kind: tooling
+  owner: QA Lead
+  agent: devsecops-release-engineer
+  requirements: [NG-REL-002]
+  depends_on: [WI-003]
+  gate: G0
+  status: DRAFT
+
+- id: WI-005
+  title: Provision reference Linux x86_64 (Ubuntu 24.04) and Windows build hosts; run preflight; record ENV-001 evidence
+  kind: env
+  owner: QA Lead
+  agent: devsecops-release-engineer
+  requirements: [NG-TST-009]
+  depends_on: []
+  gate: G0
+  status: DRAFT
+
+- id: WI-006
+  title: CI skeleton — governance validation, YAML/Markdown lint, secret scan on every PR
+  kind: tooling
+  owner: QA Lead
+  agent: devsecops-release-engineer
+  requirements: [NG-REL-006, NG-TST-003]
+  decisions: [ADR-023]
+  depends_on: [WI-000]
+  gate: G0
+  status: DRAFT
+
+- id: WI-007
+  title: STRIDE threat model, trust-boundary map and prevention recovery plan
+  kind: design
+  owner: Security Lead
+  agent: security-assurance-reviewer
+  requirements: [NG-SEC-009, NG-SYS-001]
+  depends_on: [WI-001]
+  gate: G0
+  status: DRAFT
+
+- id: WI-008
+  title: OEM SKU shortlist (two vendors), BOM inputs, RFQs and power/thermal survey
+  kind: decision
+  owner: Hardware Lead
+  agent: hardware-integration-engineer
+  requirements: [NG-HW-002, NG-HW-003]
+  decisions: [ADR-015, ADR-001]
+  depends_on: []
+  gate: G0
+  status: DRAFT
+
+- id: WI-009
+  title: Kernel LTS and Yocto BSP selection (ADR-009)
+  kind: decision
+  owner: OS Lead
+  agent: yocto-os-engineer
+  decisions: [ADR-009]
+  depends_on: [WI-008]
+  gate: G0
+  status: DRAFT
+
+- id: WI-010
+  title: OTA system selection RAUC vs SWUpdate (ADR-012)
+  kind: decision
+  owner: OS Lead
+  agent: yocto-os-engineer
+  decisions: [ADR-012]
+  depends_on: [WI-009]
+  gate: G0
+  status: DRAFT
+
+- id: WI-011
+  title: Yocto minimal signed-boot POC on OEM/eval hardware
+  kind: spike
+  owner: OS Lead
+  agent: yocto-os-engineer
+  requirements: [NG-OS-003]
+  depends_on: [WI-005, WI-009, WI-010, WI-017]
+  gate: G0
+  status: DRAFT
+
+- id: WI-012
+  title: Draft v1 contracts — events, enrollment, policy, health protos + buf config (DRAFT, not frozen)
+  kind: contract
+  owner: Platform Lead
+  agent: system-architect
+  requirements: [NG-API-001, NG-API-002, NG-API-003, NG-API-004, NG-API-005, NG-API-007, NG-API-008]
+  decisions: [ADR-021]
+  resolves: [FND-007, FND-008]
+  depends_on: [WI-000]
+  gate: G0
+  status: DRAFT
+
+- id: WI-013
+  title: Resolve CTR-001 kernel event header (FND-006); eBPF load/attach POC on candidate kernel
+  kind: spike
+  owner: Kernel Lead
+  agent: kernel-ebpf-engineer
+  requirements: [NG-LNX-003, NG-LNX-006]
+  resolves: [FND-006]
+  depends_on: [WI-005, WI-017]
+  gate: G0
+  status: DRAFT
+
+- id: WI-014
+  title: Windows ETW/WFP and driver-signing feasibility report with build matrix
+  kind: design
+  owner: Windows Lead
+  agent: windows-security-engineer
+  requirements: [NG-WIN-005, NG-WIN-001]
+  decisions: [ADR-010, ADR-019]
+  depends_on: [WI-015]
+  gate: G0
+  status: DRAFT
+
+- id: WI-015
+  title: Supported platform matrix (ADR-028)
+  kind: decision
+  owner: Principal Systems Architect
+  agent: system-architect
+  decisions: [ADR-028]
+  resolves: [FND-010]
+  depends_on: [WI-001]
+  gate: G0
+  status: DRAFT
+
+- id: WI-016
+  title: Pilot telemetry volume and resource sizing model
+  kind: design
+  owner: Platform Lead
+  agent: central-brain-engineer
+  requirements: [NG-OPS-008]
+  depends_on: [WI-001]
+  gate: G0
+  status: DRAFT
+
+- id: WI-017
+  title: Resolve G0/G1 checklist conflict and gate mapping (FND-004, FND-005)
+  kind: decision
+  owner: Principal Systems Architect
+  agent: null
+  resolves: [FND-004, FND-005]
+  depends_on: []
+  gate: G0
+  status: DRAFT
+
+- id: WI-018
+  title: Review registry; move requirements DRAFT→REVIEW; approve G0-critical decisions
+  kind: decision
+  owner: Principal Systems Architect
+  agent: system-architect
+  requirements: [NG-REL-007]
+  decisions: [ADR-001, ADR-002, ADR-003, ADR-004, ADR-005, ADR-006, ADR-007, ADR-008, ADR-021, ADR-023, ADR-030, ADR-031]
+  resolves: [FND-003]
+  depends_on: [WI-001, WI-003]
+  gate: G0
+  status: DRAFT
+
+- id: WI-019
+  title: G0 baseline sign-off review
+  kind: decision
+  owner: Principal Systems Architect
+  agent: null
+  depends_on: [WI-004, WI-005, WI-007, WI-008, WI-011, WI-012, WI-013, WI-014, WI-016, WI-018]
+  gate: G0
+  status: DRAFT
+
+# ---- G1 decisions that can start in parallel after G0 inputs
+- id: WI-020
+  title: Brain queue benchmark NATS JetStream vs Kafka (ADR-011)
+  kind: spike
+  owner: Platform Lead
+  agent: central-brain-engineer
+  decisions: [ADR-011]
+  depends_on: [WI-016]
+  gate: G1
+  status: DRAFT
+
+- id: WI-021
+  title: Policy transport, signature algorithm and data retention ADRs (ADR-013, ADR-022, ADR-017)
+  kind: decision
+  owner: Security Lead
+  agent: security-assurance-reviewer
+  decisions: [ADR-013, ADR-022, ADR-017]
+  depends_on: [WI-012]
+  gate: G1
+  status: DRAFT

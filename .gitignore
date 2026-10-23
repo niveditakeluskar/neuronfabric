@@ -1,0 +1,52 @@
+# --- Secrets: never commit (see SECURITY.md) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.kdbx
+*.tfvars
+!*.tfvars.example
+secrets/
+**/signing-keys/
+
+# --- Controlled source specifications: originals stay outside Git until
+#     FND-013 / ADR-031 decide storage (see docs/00-source-specifications/README.md) ---
+docs/00-source-specifications/originals/
+*.docx
+~$*
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# --- Build outputs ---
+target/
+build/
+dist/
+out/
+bin/
+*.o
+*.bpf.o
+vmlinux.h
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+coverage/
+
+# --- Yocto ---
+appliance/build*/
+appliance/sstate-cache/
+appliance/downloads/
+appliance/tmp*/
+
+# --- Local, host-identifying environment reports (commit only sanitized copies) ---
+.local/

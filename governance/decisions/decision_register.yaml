@@ -1,0 +1,395 @@
+# Architecture Decision Register
+#
+# status          lifecycle state (governance/workflow.yaml). No decision is APPROVED: the TDS §F9 sign-off register is all PENDING.
+# source_state    the state the TDS itself assigns (verbatim), kept for traceability
+# freeze_by       program gate by which the decision must be APPROVED (TDS §F7 where stated)
+# record          path to the full ADR markdown, created when the decision enters REVIEW with a written rationale
+#
+# ADR-001…ADR-008 keep their TDS IDs. ADR-009…ADR-017 are the TDS §F7 open decisions.
+# ADR-018…ADR-029 are decisions the TDS leaves open in section bodies or that came out of findings.
+# ADR-030…ADR-031 are repository governance decisions made during Prompt 00.
+
+schema_version: 1
+document: decision_register
+
+decisions:
+- id: ADR-001
+  title: OEM/ODM x86_64 appliance first; custom PCB in a later hardware revision
+  source_refs: ["TDS executive decisions ADR-001", "TDS §B1"]
+  source_state: Confirmed strategy
+  status: REVIEW
+  owner: Hardware Lead
+  freeze_by: G0
+  options: []
+  recommended: OEM/ODM x86_64 first
+  record: null
+  notes: The TDS marks this "Confirmed", but the §F9 sign-off register is PENDING. Approval must be recorded (FND-003).
+
+- id: ADR-002
+  title: Yocto-based immutable A/B appliance OS
+  source_refs: ["TDS executive decisions ADR-002", "TDS §B2"]
+  source_state: Confirmed strategy
+  status: REVIEW
+  owner: OS Lead
+  freeze_by: G0
+  options: []
+  recommended: Yocto immutable A/B
+  record: null
+  notes: See FND-003.
+
+- id: ADR-003
+  title: Linux + Windows + containers/K8s + network device visibility in first release
+  source_refs: ["TDS executive decisions ADR-003", "TDS §F1"]
+  source_state: Confirmed scope
+  status: REVIEW
+  owner: Product Owner
+  freeze_by: G0
+  options: []
+  recommended: As stated
+  record: null
+  notes: See FND-003 and RSK-005 (scope breadth vs 12 months). Interacts with ADR-029.
+
+- id: ADR-004
+  title: Shared Central Brain codebase; SaaS and customer on-prem deployment
+  source_refs: ["TDS executive decisions ADR-004", "TDS §D1#67"]
+  source_state: Confirmed strategy
+  status: REVIEW
+  owner: Platform Lead
+  freeze_by: G0
+  options: []
+  recommended: As stated
+  record: null
+  notes: See FND-003.
+
+- id: ADR-005
+  title: Detection AND bounded active prevention in first release
+  source_refs: ["TDS executive decisions ADR-005", "TDS §D5"]
+  source_state: Confirmed scope
+  status: REVIEW
+  owner: Security Lead
+  freeze_by: G0
+  options: []
+  recommended: As stated, gated by G-D5
+  record: null
+  notes: See FND-003.
+
+- id: ADR-006
+  title: Rust Linux agent; C/libbpf eBPF; Windows user-mode C++/Rust with signed driver only where justified
+  source_refs: ["TDS executive decisions ADR-006", "TDS §C1", "TDS §C2", "TDS §C3"]
+  source_state: Proposed
+  status: REVIEW
+  owner: Kernel Lead
+  freeze_by: G0
+  options: []
+  recommended: As stated; the Windows user-mode language is split out to ADR-019
+  record: null
+  notes: null
+
+- id: ADR-007
+  title: Go Brain control services; Python offline ML; PostgreSQL + ClickHouse + object storage
+  source_refs: ["TDS executive decisions ADR-007", "TDS §D1", "TDS §D4"]
+  source_state: Proposed
+  status: REVIEW
+  owner: Platform Lead
+  freeze_by: G0
+  options: []
+  recommended: As stated
+  record: null
+  notes: The Master Plan v6 proposes FastAPI for the console backend (FND-009). The web UI stack is split out to ADR-024.
+
+- id: ADR-008
+  title: Secure mTLS gRPC telemetry, protobuf contract and signed policies
+  source_refs: ["TDS executive decisions ADR-008", "TDS §D2", "TDS §E1"]
+  source_state: Proposed
+  status: REVIEW
+  owner: Platform Lead
+  freeze_by: G0
+  options: []
+  recommended: As stated
+  record: null
+  notes: null
+
+# ---- TDS §F7 open decisions
+- id: ADR-009
+  title: Kernel LTS and Yocto BSP selection
+  source_refs: ["TDS §F7", "TDS §B2 table: Kernel"]
+  source_state: Open
+  status: DRAFT
+  owner: OS Lead
+  freeze_by: G0
+  options: [vendor BSP kernel, Yocto linux-yocto LTS]
+  recommended: Select based on OEM support, BTF/BPF LSM availability and Yocto compatibility
+  record: null
+  notes: Blocks NG-OS-002/003/004 and NG-LNX-001/003/006 (selected kernel).
+
+- id: ADR-010
+  title: Windows driver scope
+  source_refs: ["TDS §F7", "TDS §C3"]
+  source_state: Open
+  status: DRAFT
+  owner: Windows Lead
+  freeze_by: G1
+  options: [ETW-only, ETW + WFP callout driver, ETW + WFP + minifilter]
+  recommended: ETW-first; WFP for egress; minifilter only if essential
+  record: null
+  notes: null
+
+- id: ADR-011
+  title: Brain queue technology
+  source_refs: ["TDS §F7", "TDS §D1 table: Queue"]
+  source_state: Open
+  status: DRAFT
+  owner: Platform Lead
+  freeze_by: G1
+  options: [NATS JetStream, Kafka]
+  recommended: Benchmark both at pilot volume (needs NG-OPS-008)
+  record: null
+  notes: null
+
+- id: ADR-012
+  title: OTA update system
+  source_refs: ["TDS §F7", "TDS §B2 table: Image update"]
+  source_state: Open
+  status: DRAFT
+  owner: OS Lead
+  freeze_by: G0
+  options: [RAUC, SWUpdate]
+  recommended: Decide on BSP/bootloader integration; choose exactly one
+  record: null
+  notes: null
+
+- id: ADR-013
+  title: Linux policy transport and rollback lease
+  source_refs: ["TDS §F7"]
+  source_state: Open
+  status: DRAFT
+  owner: Security Lead
+  freeze_by: G1
+  options: [signed canonical protobuf, signed canonical JSON]
+  recommended: Signed protobuf canonical encoding with rollback lease
+  record: null
+  notes: Canonical protobuf encoding is not guaranteed across implementations. The ADR must define the signature input precisely (sign the exact bytes, not a re-serialization).
+
+- id: ADR-014
+  title: RDP gateway component
+  source_refs: ["TDS §F7", "TDS §C6"]
+  source_state: Open
+  status: DRAFT
+  owner: Security Lead
+  freeze_by: G2
+  options: []
+  recommended: Evaluate supported audited gateways; do not invent protocol support
+  record: null
+  notes: null
+
+- id: ADR-015
+  title: Commercial OEM BOM
+  source_refs: ["TDS §F7", "TDS §B1"]
+  source_state: Open
+  status: DRAFT
+  owner: Hardware Lead
+  freeze_by: G0
+  options: []
+  recommended: Two vendors; evaluate lead time, lifecycle, thermal and support terms
+  record: null
+  notes: null
+
+- id: ADR-016
+  title: Security certification target
+  source_refs: ["TDS §F7"]
+  source_state: Open
+  status: DRAFT
+  owner: Security Lead
+  freeze_by: G3
+  options: [SOC 2, ISO 27001, market-specific]
+  recommended: Customer market-specific roadmap
+  record: null
+  notes: null
+
+- id: ADR-017
+  title: Data retention defaults and legal holds
+  source_refs: ["TDS §F7", "TDS §D3#76"]
+  source_state: Open
+  status: DRAFT
+  owner: Platform Lead
+  freeze_by: G1
+  options: []
+  recommended: Per-region/tenant defaults with legal-hold support
+  record: null
+  notes: null
+
+# ---- Open in TDS section bodies
+- id: ADR-018
+  title: Linux agent local state library
+  source_refs: ["TDS §C2 table: State"]
+  source_state: Open ("one chosen ADR")
+  status: DRAFT
+  owner: Kernel Lead
+  freeze_by: G2
+  options: [rusqlite, sqlx]
+  recommended: null
+  record: null
+  notes: null
+
+- id: ADR-019
+  title: Windows user-mode service language
+  source_refs: ["TDS §C3 table: Language"]
+  source_state: Open ("ADR pending")
+  status: DRAFT
+  owner: Windows Lead
+  freeze_by: G1
+  options: [Rust, C++]
+  recommended: null
+  record: null
+  notes: null
+
+- id: ADR-020
+  title: PostgreSQL migration tool
+  source_refs: ["TDS §D1 table: Runtime"]
+  source_state: Open
+  status: DRAFT
+  owner: Platform Lead
+  freeze_by: G2
+  options: [goose, atlas]
+  recommended: null
+  record: null
+  notes: null
+
+- id: ADR-021
+  title: Identifier format
+  source_refs: ["TDS §D2 table: Identifiers"]
+  source_state: Open
+  status: DRAFT
+  owner: Platform Lead
+  freeze_by: G0
+  options: [UUIDv7, UUIDv4]
+  recommended: null
+  record: null
+  notes: Needed before the contract draft freeze (NG-API-002).
+
+- id: ADR-022
+  title: Policy and bundle signature algorithm
+  source_refs: ["TDS §E1 table: Policy"]
+  source_state: Open
+  status: DRAFT
+  owner: PKI Lead
+  freeze_by: G1
+  options: [Ed25519, ECDSA P-256]
+  recommended: Review against target compliance regimes (ADR-016) and HSM support
+  record: null
+  notes: null
+
+- id: ADR-023
+  title: CI platform
+  source_refs: ["TDS §E2 table: CI"]
+  source_state: Open
+  status: DRAFT
+  owner: QA Lead
+  freeze_by: G0
+  options: [GitHub Actions, GitLab CI]
+  recommended: GitHub Actions (the remote is GitHub), with self-hosted isolated runners for privileged jobs
+  record: null
+  notes: null
+
+- id: ADR-024
+  title: Operator web console stack
+  source_refs: ["TDS §A1 (operator UI)", "Master Plan v6 §3 Console"]
+  source_state: Not specified in TDS
+  status: DRAFT
+  owner: Platform Lead
+  freeze_by: G2
+  options: [React SPA over Go API, React + FastAPI per Master Plan]
+  recommended: React SPA over the Go API gateway (keeps ADR-007 consistent)
+  record: null
+  notes: Raised by FND-009.
+
+- id: ADR-025
+  title: Stream processing engine
+  source_refs: ["TDS §D4 table: Streaming"]
+  source_state: Open
+  status: DRAFT
+  owner: Detection Lead
+  freeze_by: G4
+  options: [Go stream workers, Apache Flink]
+  recommended: Go workers unless measured scale justifies Flink
+  record: null
+  notes: null
+
+- id: ADR-026
+  title: Model registry
+  source_refs: ["TDS §D4 table: Model registry"]
+  source_state: Open
+  status: DRAFT
+  owner: Detection Lead
+  freeze_by: G6
+  options: [MLflow, equivalent]
+  recommended: null
+  record: null
+  notes: null
+
+- id: ADR-027
+  title: Python dependency locking tool
+  source_refs: ["TDS §E2#97"]
+  source_state: Open
+  status: DRAFT
+  owner: QA Lead
+  freeze_by: G1
+  options: [uv, pip with hashes]
+  recommended: null
+  record: null
+  notes: null
+
+- id: ADR-028
+  title: Supported platform matrix (host OS/kernels, Windows builds, architectures, K8s versions)
+  source_refs: ["TDS §C1 table: Dev test", "TDS §C3#39", "TDS §F5 WIN-001", "Master Plan v6 §18 (freeze initial supported platforms)"]
+  source_state: Not specified
+  status: DRAFT
+  owner: Principal Systems Architect
+  freeze_by: G0
+  options: []
+  recommended: null
+  record: null
+  notes: Raised by FND-010 (aarch64 appears in the dev test matrix only).
+
+- id: ADR-029
+  title: Product scope boundary between NeuroGuard TDS v2 and Master Plan v6
+  source_refs: ["TDS v2 §F1", "Master Plan v6 §1–§6"]
+  source_state: Not specified
+  status: DRAFT
+  owner: Product Owner
+  freeze_by: G0
+  options:
+    - NeuroGuard TDS v2 only; Master Plan v6 is a separate product/repo
+    - NeuroGuard TDS v2 now; Master Plan capabilities (GPU optimization, AI-agent identity, tool gateway) as later modules in this repo
+    - Merge both scopes into release 1
+  recommended: null
+  record: null
+  notes: Raised by FND-001. Blocks approval of the requirements baseline (NG-REL-007) and the threat model (NG-SEC-009).
+
+# ---- Repository governance (Prompt 00)
+- id: ADR-030
+  title: Monorepo layout
+  source_refs: ["TDS §D1.1"]
+  source_state: n/a
+  status: REVIEW
+  owner: Principal Systems Architect
+  freeze_by: G0
+  options: []
+  recommended: Use TDS §D1.1 with documented additions (hardware/, brain/web/, security/, release/, operations/, tools/, governance/, tests/compatibility, tests/environments, contracts/openapi, contracts/jsonschema)
+  record: docs/02-system-architecture/architecture_overview.md#repository-layout
+  notes: The TDS docs/{adr,requirements,runbooks,evidence} map to governance/decisions, governance/requirements_registry.yaml, operations/runbooks and governance/evidence.
+
+- id: ADR-031
+  title: Source specification storage and source-of-truth hierarchy
+  source_refs: ["TDS §F9", "Prompt 00 §2"]
+  source_state: n/a
+  status: REVIEW
+  owner: Principal Systems Architect
+  freeze_by: G0
+  options:
+    - Keep originals outside Git; track SHA-256 in the manifest (current)
+    - Commit originals to this repository (Git LFS)
+    - Store originals in a controlled document system and link them
+  recommended: Keep originals outside Git until the remote's access control is confirmed (FND-013)
+  record: docs/00-source-specifications/README.md
+  notes: null

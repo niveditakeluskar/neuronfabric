@@ -1,0 +1,2357 @@
+# NeuroGuard requirements registry
+#
+# Derived from NG-TDS-000 v2.0.0-candidate (see docs/00-source-specifications/specification_manifest.yaml).
+# Every entry is DRAFT. The TDS sign-off register (§F9) is entirely PENDING, so nothing here is approved.
+#
+# Field reference
+#   id                   stable NG-<AREA>-NNN identifier (never reused or renumbered)
+#   source_ids           identifiers used for this requirement in the source document (preserved verbatim)
+#   source_refs          "TDS §<section>#<item>". The item number is the TDS-global numbered LLD line (1–123).
+#   owner                TDS role (a named person is assigned in governance/approvals once known; see FND-014)
+#   priority             P0 = G0 / release-blocking safety or security; P1 = first commercial release; P2 = conditional / later
+#   section_gate         TDS section gate (G-A1 … G-E4)
+#   program_gate         TDS program gate (G0 … G11), set ONLY where the TDS states it explicitly (FND-005)
+#   status               lifecycle state (governance/workflow.yaml)
+#   verification_method  type: test | inspection | analysis | demonstration | review
+#
+# Test IDs and evidence links are kept in governance/traceability.yaml, not here.
+
+schema_version: 1
+document: requirements_registry
+source_document: NG-TDS-000
+source_version: 2.0.0-candidate
+generated_on: "2026-10-23"
+
+id_prefixes:
+  NG-SYS: System requirements
+  NG-HW: Hardware
+  NG-OS: Customized operating system
+  NG-LNX: Linux kernel engine
+  NG-RST: Rust runtime
+  NG-WIN: Windows sensor
+  NG-K8S: Kubernetes
+  NG-NET: Network infrastructure
+  NG-PAM: Privileged access management
+  NG-BRN: Central Brain
+  NG-AI: Behavioral intelligence
+  NG-POL: Policy and enforcement
+  NG-SEC: Cybersecurity
+  NG-API: Interface contracts
+  NG-DAT: Data models
+  NG-OPS: Operations
+  NG-TST: Testing
+  NG-REL: Releases
+
+# Explicit mapping of identifiers that already exist in the source document.
+# TDS §F6 IDs are kept unchanged. TDS §F5 G0 checklist IDs do not follow the NG- scheme,
+# so each maps to the NG- requirement that carries it in source_ids.
+id_mapping:
+  - {source_id: NG-LNX-001, source_ref: "TDS §F6", registry_id: NG-LNX-001}
+  - {source_id: NG-LNX-002, source_ref: "TDS §F6", registry_id: NG-LNX-002}
+  - {source_id: NG-WIN-001, source_ref: "TDS §F6", registry_id: NG-WIN-001}
+  - {source_id: NG-WIN-002, source_ref: "TDS §F6", registry_id: NG-WIN-002}
+  - {source_id: NG-OS-001, source_ref: "TDS §F6", registry_id: NG-OS-001}
+  - {source_id: NG-HW-001, source_ref: "TDS §F6", registry_id: NG-HW-001}
+  - {source_id: NG-API-001, source_ref: "TDS §F6", registry_id: NG-API-001}
+  - {source_id: NG-BRN-001, source_ref: "TDS §F6", registry_id: NG-BRN-001}
+  - {source_id: NG-SEC-001, source_ref: "TDS §F6", registry_id: NG-SEC-001}
+  - {source_id: NG-AI-001, source_ref: "TDS §F6", registry_id: NG-AI-001}
+  - {source_id: NG-K8S-001, source_ref: "TDS §F6", registry_id: NG-K8S-001}
+  - {source_id: NG-NET-001, source_ref: "TDS §F6", registry_id: NG-NET-001}
+  - {source_id: NG-PAM-001, source_ref: "TDS §F6", registry_id: NG-PAM-001}
+  - {source_id: ENV-001, source_ref: "TDS §F5", registry_id: NG-TST-009}
+  - {source_id: HW-001, source_ref: "TDS §F5", registry_id: NG-HW-002}
+  - {source_id: OS-001, source_ref: "TDS §F5", registry_id: NG-OS-003}
+  - {source_id: KRN-001, source_ref: "TDS §F5", registry_id: NG-LNX-006}
+  - {source_id: WIN-001, source_ref: "TDS §F5", registry_id: NG-WIN-005}
+  - {source_id: API-001, source_ref: "TDS §F5", registry_id: NG-API-001}
+  - {source_id: SEC-001, source_ref: "TDS §F5", registry_id: NG-SEC-009}
+  - {source_id: OPS-001, source_ref: "TDS §F5", registry_id: NG-OPS-008}
+  - {source_id: GOV-001, source_ref: "TDS §F5", registry_id: NG-REL-007}
+
+requirements:
+
+# ---------------------------------------------------------------- NG-SYS
+- id: NG-SYS-001
+  source_ids: []
+  title: Three-plane topology with isolated telemetry and control paths
+  statement: The system separates the data plane (local sensors), control plane (Brain policy, enrollment, fleet) and administration plane (PAM sessions, operator UI). Telemetry ingestion is split from command/control so that ingest overload cannot starve control.
+  owner: Principal Systems Architect
+  source_refs: ["TDS §A1", "TDS §A1#2"]
+  priority: P0
+  section_gate: G-A1
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Topology and trust-boundary map signed by architecture and security owners.
+    - Ingest overload test shows control-plane policy delivery is unaffected.
+  verification_method: {type: review, detail: "Threat-model walkthrough with two tenants and two sites (TDS §A1 verification)."}
+
+- id: NG-SYS-002
+  source_ids: []
+  title: Immutable entity identifiers
+  statement: Tenant, site, host, boot, sensor instance and policy revision each have an immutable identifier that is never reused.
+  owner: Principal Systems Architect
+  source_refs: ["TDS §A1#3"]
+  priority: P0
+  section_gate: G-A1
+  dependencies: [NG-API-008]
+  status: DRAFT
+  acceptance_criteria:
+    - Identifier scheme documented in contracts and enforced by database constraints.
+  verification_method: {type: inspection, detail: "Contract and schema review; uniqueness constraint tests."}
+
+- id: NG-SYS-003
+  source_ids: []
+  title: Defined connectivity states and offline safeguards
+  statement: Sensors support the connectivity states connected, degraded, offline, revoked and recovery. Losing the Brain link never disables local safeguards that already exist, and a bounded stale-policy lease governs enforcement while offline.
+  owner: Principal Systems Architect
+  source_refs: ["TDS §A1#4", "TDS §A1 failure handling"]
+  priority: P0
+  section_gate: G-A1
+  dependencies: [NG-POL-006]
+  status: DRAFT
+  acceptance_criteria:
+    - Under an injected network partition, local policy keeps operating within the lease, and events replay after reconnection.
+  verification_method: {type: test, detail: "Network-partition fault injection (TDS §A1 verification)."}
+
+- id: NG-SYS-004
+  source_ids: []
+  title: Outbound-only agent sessions
+  statement: Agents initiate all sessions outbound. Agents expose no inbound internet-reachable service.
+  owner: Principal Systems Architect
+  source_refs: ["TDS §A1 table: Network"]
+  priority: P1
+  section_gate: G-A1
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Port scan of a deployed agent host shows no NeuroGuard listener reachable from outside the host.
+  verification_method: {type: test, detail: "External port scan in lab."}
+
+- id: NG-SYS-005
+  source_ids: []
+  title: Per-tenant region binding and data residency
+  statement: Each tenant is bound to a region, and its data stays in that region.
+  owner: Principal Systems Architect
+  source_refs: ["TDS §A1 table: Regions", "TDS §D3#78"]
+  priority: P1
+  section_gate: G-A1
+  dependencies: [ADR-017]
+  status: DRAFT
+  acceptance_criteria:
+    - Tenant data stores, backups and object storage are provably located in the bound region.
+  verification_method: {type: inspection, detail: "Deployment profile and storage location audit."}
+
+- id: NG-SYS-006
+  source_ids: []
+  title: Detections advertise visibility prerequisites
+  statement: The product makes no claim of complete syscall, kernel, network or encrypted-traffic coverage. Every detection states its visibility prerequisites, and a detection whose collectors are not active is reported as unavailable.
+  owner: Principal Systems Architect
+  source_refs: ["TDS scope & assumptions", "TDS §C1 failure handling"]
+  priority: P0
+  section_gate: G-A1
+  dependencies: [NG-LNX-006]
+  status: DRAFT
+  acceptance_criteria:
+    - Every shipped detection has a prerequisites declaration. Disabling a collector marks the dependent detections unavailable in the UI and API.
+  verification_method: {type: test, detail: "Collector-disable test against detection catalog."}
+
+- id: NG-SYS-007
+  source_ids: []
+  title: AI never enforces directly
+  statement: AI components score and recommend. Only the deterministic policy engine enforces. LLM or ML output never executes commands or changes kernel policy.
+  owner: Principal Systems Architect
+  source_refs: ["TDS scope & assumptions", "TDS §D4#84", "TDS §F1 AI"]
+  priority: P0
+  section_gate: G-D5
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Architecture review confirms no code path from the analytics or model services to enforcement other than through signed, approved policy.
+  verification_method: {type: review, detail: "Code-path review plus negative test that model output cannot trigger enforcement."}
+
+- id: NG-SYS-008
+  source_ids: []
+  title: Documented out-of-scope inspection and prevention
+  statement: Traffic-inspection and prevention constraints that are out of scope are documented explicitly for each platform.
+  owner: Principal Systems Architect
+  source_refs: ["TDS §A1#5", "TDS §F1"]
+  priority: P1
+  section_gate: G-A1
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The limitations document is published for each platform and referenced from customer documentation.
+  verification_method: {type: inspection, detail: "Document review."}
+
+- id: NG-SYS-009
+  source_ids: []
+  title: Appliance hooks scope
+  statement: Kernel hooks on the appliance observe appliance processes only. Linux workload hosts need the host agent, Windows uses supported Windows interfaces, and network devices rely on management protocols and flow or mirror telemetry.
+  owner: Principal Systems Architect
+  source_refs: ["TDS scope & assumptions"]
+  priority: P1
+  section_gate: G-A1
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Product documentation and deployment guides reflect this coverage model.
+  verification_method: {type: inspection, detail: "Document review."}
+
+# ---------------------------------------------------------------- NG-HW
+- id: NG-HW-001
+  source_ids: [NG-HW-001]
+  title: Hardware boot-chain and recovery qualification
+  statement: On the actual OEM SKU, the Secure Boot chain, TPM quote, firmware update recovery and disk wear behavior are verified.
+  owner: Hardware Lead
+  source_refs: ["TDS §B1 verification", "TDS §F6"]
+  priority: P0
+  section_gate: G-B1
+  program_gate: G1
+  dependencies: [NG-HW-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Signed hardware qualification report covering Secure Boot, TPM quote, firmware recovery and storage wear.
+  verification_method: {type: test, detail: "T-HW-BOOT-001 on representative boards."}
+
+- id: NG-HW-002
+  source_ids: [HW-001]
+  title: Frozen hardware BOM (HW-BOM-001)
+  statement: The OEM SKU, firmware version, NIC PCI IDs, storage model and TPM part number are frozen as HW-BOM-001, with two qualified vendors and documented lead time, lifecycle, thermal and support terms.
+  owner: Hardware Lead
+  source_refs: ["TDS §B1#6", "TDS §F5 HW-001", "TDS §F7 Commercial OEM BOM"]
+  priority: P0
+  section_gate: G-B1
+  program_gate: G0
+  dependencies: [ADR-015]
+  status: DRAFT
+  acceptance_criteria:
+    - OEM SKU/BSP/TPM/NIC inventory attached. Hardware Lead approval and procurement feasibility recorded (G0 HW-001 pass condition).
+  verification_method: {type: inspection, detail: "BOM review and approval record."}
+
+- id: NG-HW-003
+  source_ids: []
+  title: Minimum appliance hardware profile
+  statement: "Appliance profile: x86_64 4-core (Intel N-series or comparable); 8 GB RAM minimum (16 GB recommended; ECC availability checked); 128–256 GB industrial NVMe/eMMC with endurance rating; at least two independent 1GbE ports (four on the DC model); discrete TPM 2.0 preferred; UEFI Secure Boot and measured boot; external certified PSU."
+  owner: Hardware Lead
+  source_refs: ["TDS §B1 table"]
+  priority: P1
+  section_gate: G-B1
+  dependencies: [NG-HW-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Selected SKU datasheet and incoming inspection confirm each profile item.
+  verification_method: {type: inspection, detail: "Datasheet and incoming inspection."}
+
+- id: NG-HW-004
+  source_ids: []
+  title: Stable NIC mapping and capability validation
+  statement: NIC ports map to PCI device IDs with stable physical labels. SR-IOV and XDP capabilities are validated independently of vendor claims.
+  owner: Hardware Lead
+  source_refs: ["TDS §B1#7"]
+  priority: P1
+  section_gate: G-B1
+  dependencies: [NG-HW-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Port-label to PCI-ID table published. SR-IOV/XDP test results recorded per NIC model.
+  verification_method: {type: test, detail: "Lab capability test per NIC."}
+
+- id: NG-HW-005
+  source_ids: []
+  title: Secure manufacturing identity injection
+  statement: Manufacturing validates the TPM endorsement key, assigns a unique device ID and creates a CSR for a TPM-resident, non-exportable key that is linked to the manufacturing record. The manufacturing manifest records board_rev, firmware_digest, nic_inventory, tpm_ek_pub_hash, serial and lot.
+  owner: Hardware Lead
+  source_refs: ["TDS §B1#8", "TDS §B1 contracts"]
+  priority: P0
+  section_gate: G-B1
+  dependencies: [NG-SEC-004]
+  status: DRAFT
+  acceptance_criteria:
+    - The manufacturing manifest validates against its JSON Schema. Attempts to export the private key fail.
+  verification_method: {type: test, detail: "TPM enrollment lab evidence on OEM board."}
+
+- id: NG-HW-006
+  source_ids: []
+  title: Thermal qualification
+  statement: Thermal profiles (idle, sustained load, ambient extremes, power cycle, storage writes) are defined and passed. A fanless design is adopted only after thermal qualification.
+  owner: Hardware Lead
+  source_refs: ["TDS §B1#9", "TDS §B1 verification"]
+  priority: P1
+  section_gate: G-B1
+  dependencies: [NG-HW-002]
+  status: DRAFT
+  acceptance_criteria:
+    - 72-hour thermal/load run passes on representative boards.
+  verification_method: {type: test, detail: "72h thermal/load test."}
+
+- id: NG-HW-007
+  source_ids: []
+  title: Storage partition map and exhaustion safety
+  statement: The storage map reserves A/B rootfs slots, a recovery partition, persistent encrypted state and logs. Storage exhaustion never corrupts a boot slot or erases audit-critical metadata.
+  owner: Hardware Lead
+  source_refs: ["TDS §B1#10", "TDS §B1 failure handling"]
+  priority: P0
+  section_gate: G-B1
+  dependencies: [NG-OS-006]
+  status: DRAFT
+  acceptance_criteria:
+    - Disk-full fault injection leaves both boot slots bootable and audit metadata intact.
+  verification_method: {type: test, detail: "Disk-full fault injection."}
+
+- id: NG-HW-008
+  source_ids: []
+  title: Incoming inspection and RMA sanitization
+  statement: Acceptance sampling, incoming inspection and a hardware RMA data-sanitization procedure are defined.
+  owner: Hardware Lead
+  source_refs: ["TDS §B1#11"]
+  priority: P1
+  section_gate: G-B1
+  dependencies: [NG-OPS-005]
+  status: DRAFT
+  acceptance_criteria:
+    - Procedures approved. A sanitization drill on a returned unit is recorded.
+  verification_method: {type: demonstration, detail: "RMA sanitization drill."}
+
+- id: NG-HW-009
+  source_ids: []
+  title: No exposed debug interfaces by default
+  statement: The serial console is available only under a sealed service procedure. No debug port is exposed by default.
+  owner: Hardware Lead
+  source_refs: ["TDS §B1 table: Debug"]
+  priority: P0
+  section_gate: G-B1
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Physical inspection and firmware configuration show no debug interface enabled by default.
+  verification_method: {type: inspection, detail: "Physical and firmware configuration inspection."}
+
+# ---------------------------------------------------------------- NG-OS
+- id: NG-OS-001
+  source_ids: [NG-OS-001]
+  title: Atomic signed A/B OTA with automatic rollback
+  statement: OTA stages a signed image in the inactive slot, verifies it, switches the boot target, runs a health check and rolls back automatically. The system never rolls forward after a failed health check and always keeps the last known-good slot.
+  owner: OS Lead
+  source_refs: ["TDS §B2#17", "TDS §B2 failure handling", "TDS §F3 OTA recovery", "TDS §F6"]
+  priority: P0
+  section_gate: G-B2
+  program_gate: G7
+  dependencies: [ADR-012, NG-OS-003]
+  status: DRAFT
+  acceptance_criteria:
+    - Interruptions at download, verification, switch and first boot all recover.
+    - 100% recovery across 100 power-cut A/B cycles (provisional target, F3).
+  verification_method: {type: test, detail: "T-OS-OTA-001 OTA interruption and power-cut suite."}
+
+- id: NG-OS-002
+  source_ids: []
+  title: Pinned, licensed, SBOM-producing Yocto build
+  statement: The meta-neuroguard layer (conf/machine, distro, recipes-core, recipes-kernel, recipes-security, images) is built from layers pinned by git commit with a kas lockfile. The build captures license manifests and produces an SPDX SBOM.
+  owner: OS Lead
+  source_refs: ["TDS §B2#12", "TDS §B2#13", "TDS §B2#14", "TDS §B2.1"]
+  priority: P0
+  section_gate: G-B2
+  dependencies: [ADR-009]
+  status: DRAFT
+  acceptance_criteria:
+    - Every layer is pinned by commit in the kas lockfile. An SPDX SBOM and license manifest are emitted for each image.
+  verification_method: {type: inspection, detail: "Build artifact inspection."}
+
+- id: NG-OS-003
+  source_ids: [OS-001]
+  title: Verified boot chain with fail-closed recovery
+  statement: UEFI Secure Boot with a signed bootloader/UKI (where the BSP supports it). An invalid image signature stops boot or enters recovery, with no silent fallback to unsigned firmware or images.
+  owner: OS Lead
+  source_refs: ["TDS §B2 table: Boot", "TDS §B1 failure handling", "TDS §F5 OS-001"]
+  priority: P0
+  section_gate: G-B2
+  program_gate: G0
+  dependencies: [ADR-009, NG-HW-002]
+  status: DRAFT
+  acceptance_criteria:
+    - A minimal signed Yocto image boots on physical hardware (G0 OS-001 pass condition).
+    - A tampered image is refused and the device enters recovery.
+  verification_method: {type: test, detail: "Signed and tampered image boot test on OEM board."}
+
+- id: NG-OS-004
+  source_ids: []
+  title: Hardened kernel configuration
+  statement: The kernel config enables namespaces, LSM, BPF, BTF, lockdown and IMA appraisal, subject to compatibility testing, through config fragments in meta-neuroguard.
+  owner: OS Lead
+  source_refs: ["TDS §B2#15", "TDS §B2 table: Kernel"]
+  priority: P1
+  section_gate: G-B2
+  dependencies: [ADR-009]
+  status: DRAFT
+  acceptance_criteria:
+    - Kernel config audit shows each option on, or off with a recorded compatibility reason.
+  verification_method: {type: inspection, detail: "Kernel config audit."}
+
+- id: NG-OS-005
+  source_ids: []
+  title: Minimal hardened services
+  statement: The image ships only required daemons. Each systemd unit drops capabilities and uses ProtectSystem, PrivateTmp and NoNewPrivileges where compatible.
+  owner: OS Lead
+  source_refs: ["TDS §B2#16"]
+  priority: P1
+  section_gate: G-B2
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Service inventory matches the approved list. `systemd-analyze security` results are recorded for each unit.
+  verification_method: {type: inspection, detail: "Service inventory and unit hardening audit."}
+
+- id: NG-OS-006
+  source_ids: []
+  title: Read-only A/B rootfs with encrypted state and bounded journal
+  statement: The rootfs is read-only with A/B slots. Persistent state lives on an encrypted partition with a recovery strategy. journald is bounded.
+  owner: OS Lead
+  source_refs: ["TDS §B2 table: Storage, Init"]
+  priority: P0
+  section_gate: G-B2
+  dependencies: [NG-HW-007]
+  status: DRAFT
+  acceptance_criteria:
+    - Writes to the rootfs fail at runtime. The state partition is encrypted. Journal size stays within its cap under log flood.
+  verification_method: {type: test, detail: "Runtime write, encryption and log-flood tests."}
+
+- id: NG-OS-007
+  source_ids: []
+  title: First-boot enrollment and credential-revoking factory reset
+  statement: First boot performs enrollment. An explicit factory reset revokes credentials, and factory recovery never reuses decommissioned credentials.
+  owner: OS Lead
+  source_refs: ["TDS §B2#18", "TDS §B2 failure handling"]
+  priority: P0
+  section_gate: G-B2
+  dependencies: [NG-SEC-006]
+  status: DRAFT
+  acceptance_criteria:
+    - After a factory reset, the old device credentials are rejected by the Brain.
+  verification_method: {type: test, detail: "Reset and re-enroll test."}
+
+- id: NG-OS-008
+  source_ids: []
+  title: Reproducible images
+  statement: Images built twice from pinned sources produce matching deterministic artifacts where reproducibility is feasible. Any differences are documented.
+  owner: OS Lead
+  source_refs: ["TDS §B2 verification"]
+  priority: P1
+  section_gate: G-B2
+  dependencies: [NG-OS-002]
+  status: DRAFT
+  acceptance_criteria:
+    - The double-build hash comparison report is attached.
+  verification_method: {type: test, detail: "Double-build comparison on clean builders."}
+
+- id: NG-OS-009
+  source_ids: []
+  title: Boot manifest and OTA desired-state contracts
+  statement: "The boot manifest contains os_version, kernel_build_id, btf_hash, bsp_revision, sbom_digest and signer_key_id. The OTA desired state contains update_id, target_digest, min_bootloader, rollout_ring, expiry and rollback_policy."
+  owner: OS Lead
+  source_refs: ["TDS §B2 contracts"]
+  priority: P1
+  section_gate: G-B2
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Both are defined as versioned contracts in contracts/ with test vectors.
+  verification_method: {type: inspection, detail: "Contract review."}
+
+# ---------------------------------------------------------------- NG-LNX
+- id: NG-LNX-001
+  source_ids: [NG-LNX-001]
+  title: Process lifecycle telemetry
+  statement: Exec and exit events are captured with tracepoint/sched/sched_process_exec and sched_process_exit, with fields validated against the chosen kernel's BTF. Ancestry is reconstructed in userspace. Fallbacks are auditd for exec and procfs reconciliation for exit.
+  owner: Kernel Lead
+  source_refs: ["TDS §C1#19", "TDS §C1.2", "TDS §F6"]
+  priority: P0
+  section_gate: G-C1
+  program_gate: G2
+  dependencies: [NG-LNX-003, ADR-009]
+  status: DRAFT
+  acceptance_criteria:
+    - Golden exec/fork/exit fixtures pass byte-for-byte on reference kernels.
+  verification_method: {type: test, detail: "T-LNX-EXEC-001."}
+
+- id: NG-LNX-002
+  source_ids: [NG-LNX-002]
+  title: Bounded per-cgroup egress prevention
+  statement: Egress enforcement is per cgroup, using cgroup/connect4/6 or nftables integration, with controlled rollback. The fallback is monitor-only.
+  owner: Kernel Lead
+  source_refs: ["TDS §C1#20", "TDS §C1.2 network prevention", "TDS §D5 table: Linux", "TDS §F6"]
+  priority: P0
+  section_gate: G-C1
+  program_gate: G5
+  dependencies: [NG-POL-002, NG-POL-004, NG-LNX-006]
+  status: DRAFT
+  acceptance_criteria:
+    - Denied destinations are blocked only for targeted cgroups. Rollback restores connectivity. SSH, DNS and control-plane connectivity are never blocked by the critical allowlist.
+  verification_method: {type: test, detail: "T-LNX-EGRESS-001."}
+
+- id: NG-LNX-003
+  source_ids: []
+  title: Versioned kernel→daemon event ABI (CTR-001)
+  statement: A single versioned, fixed-size event header plus bounded payload variants. No raw kernel pointers. Native endianness is used only within one host, and userspace normalizes.
+  owner: Kernel Lead
+  source_refs: ["TDS §C1#22", "TDS §C1 contracts", "TDS §C1.1", "TDS §F2 CTR-001"]
+  priority: P0
+  section_gate: G-C1
+  dependencies: [ADR-009]
+  status: DRAFT
+  acceptance_criteria:
+    - The C header and generated Rust layout tests agree. Golden ABI fixtures pass. The field-name conflict in FND-006 is resolved.
+  verification_method: {type: test, detail: "Layout tests and golden fixtures."}
+
+- id: NG-LNX-004
+  source_ids: []
+  title: Non-blocking ring-buffer transport with loss accounting
+  statement: The ring buffer is the shared transport, with per-CPU loss and sampling counters. Under pressure, low-priority events are dropped first and loss counters are emitted. The kernel never blocks waiting on the Brain.
+  owner: Kernel Lead
+  source_refs: ["TDS §C1#23", "TDS §C1 failure handling"]
+  priority: P0
+  section_gate: G-C1
+  dependencies: [NG-LNX-003]
+  status: DRAFT
+  acceptance_criteria:
+    - Under process/connection churn stress, memory stays bounded, no kernel warnings appear and event loss is recorded.
+  verification_method: {type: test, detail: "Churn stress test (TDS §C1 verification)."}
+
+- id: NG-LNX-005
+  source_ids: []
+  title: Capped maps under loader control
+  statement: BPF map sizes are capped. Map lifecycle and pinning are controlled only by the privileged loader.
+  owner: Kernel Lead
+  source_refs: ["TDS §C1#24"]
+  priority: P1
+  section_gate: G-C1
+  dependencies: [NG-RST-001]
+  status: DRAFT
+  acceptance_criteria:
+    - Map definitions declare their maximum entries. Only the loader pins or unpins maps.
+  verification_method: {type: inspection, detail: "Code review and bpftool inspection."}
+
+- id: NG-LNX-006
+  source_ids: [KRN-001]
+  title: Per-probe attach with capability matrix and honest degradation
+  statement: Probes attach one by one and the results are recorded in a capability matrix and feature manifest. Collectors that are unsupported or fail to attach are disabled and reported as degraded. Their detections are never claimed as active.
+  owner: Kernel Lead
+  source_refs: ["TDS §C1#25", "TDS §C1 contracts", "TDS §C1 failure handling", "TDS §F5 KRN-001"]
+  priority: P0
+  section_gate: G-C1
+  program_gate: G0
+  dependencies: [ADR-009]
+  status: DRAFT
+  acceptance_criteria:
+    - eBPF probes load and attach on the selected kernel with verifier logs captured, and the event fixture passes (G0 KRN-001 pass condition).
+    - Forcing an attach failure produces a degraded capability report.
+  verification_method: {type: test, detail: "Clean-VM load/attach with verifier log capture."}
+
+- id: NG-LNX-007
+  source_ids: []
+  title: Verifier-safe, bounded BPF programs
+  statement: BPF programs contain no unbounded loops or path walks, no verifier-dependent undefined behavior and no expensive per-event stack usage.
+  owner: Kernel Lead
+  source_refs: ["TDS §C1#26"]
+  priority: P0
+  section_gate: G-C1
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Every BPF object loads on every supported kernel in the matrix with a pinned toolchain.
+  verification_method: {type: test, detail: "Kernel-matrix load tests in CI privileged runners."}
+
+- id: NG-LNX-008
+  source_ids: []
+  title: Sensitive file-open monitoring
+  statement: Sensitive-path file opens are observed via LSM/file_open when BPF LSM is available, with fanotify for selected paths as the fallback. This does not claim full write coverage.
+  owner: Kernel Lead
+  source_refs: ["TDS §C1.2 file open"]
+  priority: P1
+  section_gate: G-C1
+  dependencies: [NG-LNX-006]
+  status: DRAFT
+  acceptance_criteria:
+    - The golden file-modification fixture passes on both the LSM and fanotify paths.
+  verification_method: {type: test, detail: "File fixture tests."}
+
+- id: NG-LNX-009
+  source_ids: []
+  title: Exec prevention with validated safe list
+  statement: Exec prevention uses LSM/bprm_check_security with a validated safe list. When BPF LSM is unavailable, it falls back to observe-only.
+  owner: Kernel Lead
+  source_refs: ["TDS §C1#21", "TDS §C1.2 exec prevention"]
+  priority: P0
+  section_gate: G-C1
+  dependencies: [NG-POL-002, NG-POL-004, NG-LNX-006]
+  status: DRAFT
+  acceptance_criteria:
+    - The deny list blocks test binaries. Safe-list binaries and critical services are never blocked. The non-LSM kernel reports monitor-only.
+  verification_method: {type: test, detail: "Exec prevention scenario suite."}
+
+- id: NG-LNX-010
+  source_ids: []
+  title: Minimal kernel-side logic
+  statement: Kernel probes are deliberately minimal and never perform remote networking.
+  owner: Kernel Lead
+  source_refs: ["TDS §C1 intro"]
+  priority: P0
+  section_gate: G-C1
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Code review confirms no networking helpers are used for remote communication.
+  verification_method: {type: review, detail: "BPF code review."}
+
+# ---------------------------------------------------------------- NG-RST
+- id: NG-RST-001
+  source_ids: []
+  title: Privilege-separated loader and agent
+  statement: A privileged loader process is split from the reduced-privilege agent. They communicate over a Unix socket with peer-credential validation.
+  owner: Kernel Lead
+  source_refs: ["TDS §C2#27"]
+  priority: P0
+  section_gate: G-C2
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The agent runs without CAP_BPF/CAP_SYS_ADMIN. The socket rejects peers with unexpected credentials.
+  verification_method: {type: test, detail: "Capability inspection and IPC negative tests."}
+
+- id: NG-RST-002
+  source_ids: []
+  title: Signed BPF program bundles
+  statement: The loader verifies a signed program bundle before attaching approved hooks, and drops capabilities after load where possible. The Brain cannot request loading of arbitrary BPF objects.
+  owner: Kernel Lead
+  source_refs: ["TDS §C2#28"]
+  priority: P0
+  section_gate: G-C2
+  dependencies: [ADR-022]
+  status: DRAFT
+  acceptance_criteria:
+    - Unsigned or tampered bundles are refused and audited.
+  verification_method: {type: test, detail: "Signature negative tests."}
+
+- id: NG-RST-003
+  source_ids: []
+  title: Defensive ABI decoding
+  statement: The ring reader validates the ABI length and version before parsing and never trusts payload lengths.
+  owner: Kernel Lead
+  source_refs: ["TDS §C2#29"]
+  priority: P0
+  section_gate: G-C2
+  dependencies: [NG-LNX-003]
+  status: DRAFT
+  acceptance_criteria:
+    - Fuzzing the decoder with malformed frames produces no panic or out-of-bounds read.
+  verification_method: {type: test, detail: "Decoder unit tests and fuzzing."}
+
+- id: NG-RST-004
+  source_ids: []
+  title: PID-reuse-safe process cache
+  statement: The enrichment process cache is keyed by boot_id + pid + start_time, never by pid alone.
+  owner: Kernel Lead
+  source_refs: ["TDS §C2#30"]
+  priority: P0
+  section_gate: G-C2
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - A PID-reuse unit test attributes events to the correct process instance.
+  verification_method: {type: test, detail: "PID reuse unit test."}
+
+- id: NG-RST-005
+  source_ids: []
+  title: Bounded batching and backpressure
+  statement: The batcher applies priority queues, size limits, per-tenant backpressure and compression caps.
+  owner: Kernel Lead
+  source_refs: ["TDS §C2#31"]
+  priority: P1
+  section_gate: G-C2
+  dependencies: [NG-API-003]
+  status: DRAFT
+  acceptance_criteria:
+    - Queue-limit tests show bounded memory and priority-ordered drops.
+  verification_method: {type: test, detail: "Queue limit unit tests."}
+
+- id: NG-RST-006
+  source_ids: []
+  title: Bounded encrypted durable spool
+  statement: The spool persists events with unique IDs, a sequence number, an ack watermark and a TTL. Sensitive fields (or the filesystem) are encrypted. Bytes, age and retry count are capped. A corrupt segment is quarantined, logged and skipped with gap accounting.
+  owner: Kernel Lead
+  source_refs: ["TDS §C2#32", "TDS §C2 contracts", "TDS §C2 failure handling"]
+  priority: P0
+  section_gate: G-C2
+  dependencies: [ADR-018]
+  status: DRAFT
+  acceptance_criteria:
+    - Disk usage stays within its cap during a Brain outage. Corrupt-segment injection produces a gap record and processing continues.
+  verification_method: {type: test, detail: "Spool fault-injection tests."}
+
+- id: NG-RST-007
+  source_ids: []
+  title: Agent lifecycle state machine
+  statement: The agent implements the lifecycle INIT→ATTEST→LOAD→RUNNING→DEGRADED→DRAIN→STOP.
+  owner: Kernel Lead
+  source_refs: ["TDS §C2#33"]
+  priority: P1
+  section_gate: G-C2
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The state machine is unit-tested for all valid and invalid transitions.
+  verification_method: {type: test, detail: "State machine unit tests."}
+
+- id: NG-RST-008
+  source_ids: []
+  title: Restricted local interfaces
+  statement: The local health socket, metrics and diagnostics provide no shell execution. Local IPC is versioned and allows only status, attach manifest, and policy stage/activate/rollback.
+  owner: Kernel Lead
+  source_refs: ["TDS §C2#34", "TDS §C2 contracts"]
+  priority: P0
+  section_gate: G-C2
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - IPC fuzzing and negative tests confirm that only the allowed operations exist.
+  verification_method: {type: test, detail: "IPC negative tests."}
+
+- id: NG-RST-009
+  source_ids: []
+  title: Crash-safe enforcement recovery
+  statement: A crash restart never leaves stale, unsafe enforcement maps. The watchdog falls back to the documented last-good policy.
+  owner: Kernel Lead
+  source_refs: ["TDS §C2 failure handling", "TDS §C2 verification"]
+  priority: P0
+  section_gate: G-C2
+  dependencies: [NG-POL-006]
+  status: DRAFT
+  acceptance_criteria:
+    - After kill -9 of the loader or agent during a 10k events/sec simulation, the system recovers with bounded disk and the last-good policy active.
+  verification_method: {type: test, detail: "Kill -9 soak test."}
+
+- id: NG-RST-010
+  source_ids: []
+  title: Linux agent resource targets (provisional)
+  statement: "Provisional targets: RSS ≤ 250 MiB steady-state on the reference workload; CPU ≤ 5% of one logical core under the defined baseline; zero event loss under defined normal load. Targets are tuned against pilot workloads before any contractual SLA."
+  owner: Kernel Lead
+  source_refs: ["TDS §F3"]
+  priority: P1
+  section_gate: G-C2
+  dependencies: [NG-OPS-008]
+  status: DRAFT
+  acceptance_criteria:
+    - Measured in 24-hour sampling with perf and host CPU accounting. Results are recorded as evidence, never assumed.
+  verification_method: {type: test, detail: "24h soak with resource sampling."}
+
+# ---------------------------------------------------------------- NG-WIN
+- id: NG-WIN-001
+  source_ids: [NG-WIN-001]
+  title: ETW-based Windows telemetry service
+  statement: A user-mode service collects ETW process, image-load, network and security events. A coverage matrix documents provider and permission requirements.
+  owner: Windows Lead
+  source_refs: ["TDS §C3#35", "TDS §F6"]
+  priority: P0
+  section_gate: G-C3
+  program_gate: G3
+  dependencies: [ADR-019, NG-WIN-007]
+  status: DRAFT
+  acceptance_criteria:
+    - The coverage matrix is published. The events listed in the matrix are captured on every supported Windows build.
+  verification_method: {type: test, detail: "T-WIN-ETW-001."}
+
+- id: NG-WIN-002
+  source_ids: [NG-WIN-002]
+  title: Scoped WFP egress enforcement
+  statement: Network enforcement uses supported WFP APIs only, with no undocumented hooking. On a WFP/driver fault, the sensor fails safe as defined per policy and never persists broad network denial after an upgrade failure.
+  owner: Windows Lead
+  source_refs: ["TDS §C3#37", "TDS §C3 failure handling", "TDS §F6"]
+  priority: P0
+  section_gate: G-C3
+  program_gate: G5
+  dependencies: [ADR-010, NG-POL-002, NG-POL-004]
+  status: DRAFT
+  acceptance_criteria:
+    - Scoped deny works. An injected driver fault and a failed upgrade leave networking available.
+  verification_method: {type: test, detail: "T-WIN-WFP-001."}
+
+- id: NG-WIN-003
+  source_ids: []
+  title: Signed installer, protected config, bounded spool
+  statement: The Windows service has a signed installer, protected configuration and a bounded event spool.
+  owner: Windows Lead
+  source_refs: ["TDS §C3#36"]
+  priority: P1
+  section_gate: G-C3
+  dependencies: [NG-REL-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Installer signature validates. Non-admin users cannot modify the configuration. The spool stays within its cap.
+  verification_method: {type: test, detail: "Install, ACL and spool tests."}
+
+- id: NG-WIN-004
+  source_ids: []
+  title: Minifilter only when justified
+  statement: A file-system minifilter is used only if ETW coverage is inadequate. If one is used, altitude allocation, IRQL constraints, the IOCTL contract and unload behavior are defined.
+  owner: Windows Lead
+  source_refs: ["TDS §C3#38", "TDS §C3 table: File"]
+  priority: P2
+  section_gate: G-C3
+  dependencies: [ADR-010]
+  status: DRAFT
+  acceptance_criteria:
+    - Either an ADR records that no minifilter is needed, or the minifilter design document is approved.
+  verification_method: {type: review, detail: "ADR-010 review."}
+
+- id: NG-WIN-005
+  source_ids: [WIN-001]
+  title: Driver signing and HVCI compatibility
+  statement: Drivers are signed and compatible with HVCI/Memory Integrity. Testing covers supported Windows Server and client builds with Secure Boot and HVCI enabled, Driver Verifier, the relevant HLK tests, clean uninstall and forced reboot.
+  owner: Windows Lead
+  source_refs: ["TDS §C3#39", "TDS §C3 verification", "TDS §F5 WIN-001"]
+  priority: P0
+  section_gate: G-C3
+  program_gate: G0
+  dependencies: [ADR-010, ADR-028]
+  status: DRAFT
+  acceptance_criteria:
+    - The ETW/WFP and signing feasibility report defines the supported Windows build matrix (G0 WIN-001 pass condition).
+  verification_method: {type: analysis, detail: "Feasibility report at G0, then Driver Verifier/HLK runs at G-C3."}
+
+- id: NG-WIN-006
+  source_ids: []
+  title: Prevention isolated from observation; protected allowlists
+  statement: Prevention is separated from observation so that driver failures cannot block boot or critical system services. Critical OS processes and recovery channels have explicit protected allowlists.
+  owner: Windows Lead
+  source_refs: ["TDS §C3#40", "TDS §C3 failure handling"]
+  priority: P0
+  section_gate: G-C3
+  dependencies: [NG-POL-004]
+  status: DRAFT
+  acceptance_criteria:
+    - With the prevention component failed, the host boots and critical services run.
+  verification_method: {type: test, detail: "Fault injection on prevention component."}
+
+- id: NG-WIN-007
+  source_ids: []
+  title: Windows event normalization (CTR-006)
+  statement: Windows events map to the normalized schema with Linux-equivalent semantics and keep the Windows-specific SID, logon_id, process_guid and provider.
+  owner: Windows Lead
+  source_refs: ["TDS §C3 contracts", "TDS §F2 CTR-006"]
+  priority: P0
+  section_gate: G-C3
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Windows mapping test vectors pass.
+  verification_method: {type: test, detail: "Mapping test vectors."}
+
+- id: NG-WIN-008
+  source_ids: []
+  title: Windows false-positive safety
+  statement: Prevention policies are tested for false positives against a domain controller, DNS, update services and management access.
+  owner: Windows Lead
+  source_refs: ["TDS §C3 verification"]
+  priority: P0
+  section_gate: G-C3
+  dependencies: [NG-WIN-002]
+  status: DRAFT
+  acceptance_criteria:
+    - No disruption to the DC, DNS, update or management paths in the lab false-positive suite.
+  verification_method: {type: test, detail: "Windows FP lab suite."}
+
+# ---------------------------------------------------------------- NG-K8S
+- id: NG-K8S-001
+  source_ids: [NG-K8S-001]
+  title: Safe admission enforcement
+  statement: An admission webhook enforces high-confidence deployment-time policies with an explicit timeout and failurePolicy. The failure policy is safe for cluster-critical namespaces.
+  owner: K8s Lead
+  source_refs: ["TDS §C4#44", "TDS §C4 failure handling", "TDS §F6"]
+  priority: P0
+  section_gate: G-C4
+  program_gate: G7
+  dependencies: [NG-POL-002]
+  status: DRAFT
+  acceptance_criteria:
+    - The admission decision contract (policy_id, resource_uid, operation, evidence, decision, latency) is emitted. When the webhook is down, critical namespaces are unaffected.
+  verification_method: {type: test, detail: "T-K8S-ADMIT-001."}
+
+- id: NG-K8S-002
+  source_ids: []
+  title: DaemonSet sensor with explicit privileges
+  statement: The per-node sensor is deployed as a DaemonSet with explicit host mounts and a documented privilege requirement, via a Helm chart with OCI images pinned by digest.
+  owner: K8s Lead
+  source_refs: ["TDS §C4#41", "TDS §C4 table"]
+  priority: P1
+  section_gate: G-C4
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The chart references images only by digest. Each privilege and host mount is documented with a justification.
+  verification_method: {type: inspection, detail: "Chart review."}
+
+- id: NG-K8S-003
+  source_ids: []
+  title: Workload identity enrichment (CTR-005)
+  statement: The integration watches Pods, Nodes, Namespaces, workload owners and labels with a resourceVersion cache, and maps cgroup/container ID to Pod UID and workload revision under rapid churn. Enrichment adds cluster_id, node_uid, pod_uid, namespace, owner_uid, container_id and image_digest.
+  owner: K8s Lead
+  source_refs: ["TDS §C4#42", "TDS §C4#43", "TDS §C4 contracts", "TDS §F2 CTR-005"]
+  priority: P0
+  section_gate: G-C4
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - The pod-churn suite shows correct attribution.
+  verification_method: {type: test, detail: "Pod churn suite on kind/k3s and managed staging."}
+
+- id: NG-K8S-004
+  source_ids: []
+  title: Least-privilege RBAC
+  statement: The ServiceAccount and RBAC are least-privilege. There is no broad secrets read and no cluster-admin.
+  owner: K8s Lead
+  source_refs: ["TDS §C4 table: Permissions", "TDS §C4 verification"]
+  priority: P0
+  section_gate: G-C4
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The RBAC audit confirms no secrets list/get across namespaces and no cluster-admin binding.
+  verification_method: {type: inspection, detail: "RBAC audit."}
+
+- id: NG-K8S-005
+  source_ids: []
+  title: Resilience to API outage and cluster lifecycle
+  statement: A Kubernetes API outage does not crash the kernel sensor, and stale metadata is flagged. Upgrades, node drain, pod eviction and host reboot are handled.
+  owner: K8s Lead
+  source_refs: ["TDS §C4#46", "TDS §C4 failure handling"]
+  priority: P0
+  section_gate: G-C4
+  dependencies: [NG-K8S-003]
+  status: DRAFT
+  acceptance_criteria:
+    - Cluster lifecycle and API-outage tests pass (G-C4).
+  verification_method: {type: test, detail: "Lifecycle and outage suite."}
+
+- id: NG-K8S-006
+  source_ids: []
+  title: Separated runtime, admission and CNI controls
+  statement: Runtime prevention is kept separate from admission policy and from CNI-specific networking controls.
+  owner: K8s Lead
+  source_refs: ["TDS §C4#45"]
+  priority: P1
+  section_gate: G-C4
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Architecture review confirms independent control paths and failure domains.
+  verification_method: {type: review, detail: "Design review."}
+
+# ---------------------------------------------------------------- NG-NET
+- id: NG-NET-001
+  source_ids: [NG-NET-001]
+  title: Safe network device configuration changes
+  statement: Switch or router config changes that could sever connectivity need two-person approval, a rollback timer and out-of-band or local recovery, which must be in place before any active change. A ChangePlan holds diff, precheck, rollback_config, approval, expiry and expected_state.
+  owner: Network Lead
+  source_refs: ["TDS §C5#52", "TDS §C5 contracts", "TDS §C5 failure handling", "TDS §F6"]
+  priority: P0
+  section_gate: G-C5
+  program_gate: G8
+  dependencies: [NG-NET-003]
+  status: DRAFT
+  acceptance_criteria:
+    - A forced bad change auto-reverts within the rollback timer in the lab.
+  verification_method: {type: test, detail: "T-NET-ROLLBACK-001."}
+
+- id: NG-NET-002
+  source_ids: []
+  title: Fingerprint-based inventory without broad scanning
+  statement: Devices are inventoried by unique fingerprint, serial and management address. No broad unauthenticated scanning is performed.
+  owner: Network Lead
+  source_refs: ["TDS §C5#47"]
+  priority: P1
+  section_gate: G-C5
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Discovery contacts only configured targets. NetworkDevice records are unique.
+  verification_method: {type: test, detail: "Discovery traffic capture in lab."}
+
+- id: NG-NET-003
+  source_ids: []
+  title: Vendor adapter contract (CTR-007)
+  statement: Every vendor adapter implements discover, read_config, read_interfaces, read_flows, validate_change, apply_change and rollback. Write operations exist only for explicitly supported vendors and approved templates.
+  owner: Network Lead
+  source_refs: ["TDS §C5#48", "TDS §C5#49", "TDS §F2 CTR-007"]
+  priority: P0
+  section_gate: G-C5
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The adapter interface and fixture set are approved. Each adapter passes the fixtures.
+  verification_method: {type: test, detail: "Adapter fixture suite."}
+
+- id: NG-NET-004
+  source_ids: []
+  title: Read-only telemetry ingestion first
+  statement: The system ingests SNMPv3 authPriv, syslog over TLS, NetFlow/IPFIX, NETCONF/RESTCONF and vendor APIs, and normalizes interface counters, config drift, syslog and flow events with a source-confidence value.
+  owner: Network Lead
+  source_refs: ["TDS §C5 table", "TDS §C5#50"]
+  priority: P1
+  section_gate: G-C5
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - SNMPv3 auth failure, syslog TLS expiry and flow loss are each detected and reported.
+  verification_method: {type: test, detail: "Protocol fault tests."}
+
+- id: NG-NET-005
+  source_ids: []
+  title: Rate-limited polling and isolated credentials
+  statement: Polls are rate-limited with per-vendor backoff. Credentials are isolated per tenant and site, short-lived where supported, and held in an external vault.
+  owner: Network Lead
+  source_refs: ["TDS §C5#51", "TDS §C5 table: Credential vault"]
+  priority: P0
+  section_gate: G-C5
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - A cross-tenant credential access test fails closed.
+  verification_method: {type: test, detail: "Credential isolation tests."}
+
+- id: NG-NET-006
+  source_ids: []
+  title: No blind retry of non-idempotent commands
+  statement: A management timeout never triggers a blind retry of a non-idempotent command.
+  owner: Network Lead
+  source_refs: ["TDS §C5 failure handling"]
+  priority: P0
+  section_gate: G-C5
+  dependencies: [NG-NET-003]
+  status: DRAFT
+  acceptance_criteria:
+    - Timeout injection shows reconciliation through reading state, not re-application.
+  verification_method: {type: test, detail: "Timeout injection."}
+
+- id: NG-NET-007
+  source_ids: []
+  title: Vendor support records
+  statement: Tested firmware versions and unsupported commands are recorded for each vendor.
+  owner: Network Lead
+  source_refs: ["TDS §C5 verification"]
+  priority: P1
+  section_gate: G-C5
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The vendor certification record is published for each supported vendor.
+  verification_method: {type: inspection, detail: "Certification record review."}
+
+# ---------------------------------------------------------------- NG-PAM
+- id: NG-PAM-001
+  source_ids: [NG-PAM-001]
+  title: Privileged session state machine and audit
+  statement: Privileged access follows the state machine request→authorization→approval→credential issuance→session→recording→revocation. The session API (create/approve/start/terminate/list) uses idempotency keys and audit IDs.
+  owner: Security Lead
+  source_refs: ["TDS §C6#53", "TDS §C6 contracts", "TDS §F6"]
+  priority: P0
+  section_gate: G-C6
+  program_gate: G8
+  dependencies: [NG-SEC-007]
+  status: DRAFT
+  acceptance_criteria:
+    - MFA, session expiry, revocation, target isolation, approval-bypass attempts and replay integrity are all tested.
+  verification_method: {type: test, detail: "T-PAM-SESSION-001."}
+
+- id: NG-PAM-002
+  source_ids: []
+  title: Session binding and per-session credentials
+  statement: Each session is bound to user, tenant, target, ticket, policy version and expiry. Credentials are short-lived per session and revoked at termination.
+  owner: Security Lead
+  source_refs: ["TDS §C6#54", "TDS §C6#55"]
+  priority: P0
+  section_gate: G-C6
+  dependencies: [NG-PAM-001]
+  status: DRAFT
+  acceptance_criteria:
+    - Credentials are unusable after session termination.
+  verification_method: {type: test, detail: "Post-termination credential test."}
+
+- id: NG-PAM-003
+  source_ids: []
+  title: Strong user identity for privileged access
+  statement: Users authenticate with OIDC and MFA at the IdP. SSH uses short-lived certificates. The gateway config holds no long-lived plaintext passwords, and secrets come from Vault/KMS.
+  owner: Security Lead
+  source_refs: ["TDS §C6 table"]
+  priority: P0
+  section_gate: G-C6
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The config scan finds no plaintext credentials. MFA bypass attempts fail.
+  verification_method: {type: test, detail: "Config scan and auth tests."}
+
+- id: NG-PAM-004
+  source_ids: []
+  title: Integrity-chained recording with explicit failure outcome
+  statement: Administrative actions and recordings are integrity-chained with restricted access. A recording failure triggers an explicit policy outcome and never allows silent unrecorded access. Recording metadata contains session_id, actor, target, start/end, retention, digest and access grants.
+  owner: Security Lead
+  source_refs: ["TDS §C6#57", "TDS §C6 contracts", "TDS §C6 failure handling"]
+  priority: P0
+  section_gate: G-C6
+  dependencies: [NG-DAT-006]
+  status: DRAFT
+  acceptance_criteria:
+    - With recording storage killed mid-session, the configured outcome (terminate or block) occurs and is audited.
+  verification_method: {type: test, detail: "Recording fault injection."}
+
+- id: NG-PAM-005
+  source_ids: []
+  title: Brain-outage and emergency access policy
+  statement: A documented policy governs existing and new sessions during a Brain outage. Emergency access is audited.
+  owner: Security Lead
+  source_refs: ["TDS §C6 failure handling"]
+  priority: P0
+  section_gate: G-C6
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Outage drill behavior matches the documented policy. Emergency access appears in the audit log.
+  verification_method: {type: test, detail: "Brain outage drill."}
+
+- id: NG-PAM-006
+  source_ids: []
+  title: RDP only via selected audited gateway
+  statement: RDP is supported only through the audited gateway component selected by ADR-014. The product does not promise arbitrary RDP feature coverage. Supported target inventory and protocols are specified.
+  owner: Security Lead
+  source_refs: ["TDS §C6#58", "TDS §F7 RDP gateway"]
+  priority: P1
+  section_gate: G-C6
+  dependencies: [ADR-014]
+  status: DRAFT
+  acceptance_criteria:
+    - ADR-014 is approved and the supported-feature list is published.
+  verification_method: {type: review, detail: "ADR review."}
+
+- id: NG-PAM-007
+  source_ids: []
+  title: Gateway policy separated from endpoint prevention policy
+  statement: Gateway access policy is kept separate from endpoint process-prevention policy.
+  owner: Security Lead
+  source_refs: ["TDS §C6#56"]
+  priority: P1
+  section_gate: G-C6
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Policy schemas and evaluation services are distinct.
+  verification_method: {type: review, detail: "Design review."}
+
+# ---------------------------------------------------------------- NG-BRN
+- id: NG-BRN-001
+  source_ids: [NG-BRN-001]
+  title: Durable ingest before acknowledgement
+  statement: Ingest writes to the durable queue before sending an ACK and never acknowledges unpersisted events. A queue outage causes bounded ingress backpressure and explicit retry.
+  owner: Platform Lead
+  source_refs: ["TDS §D1#61", "TDS §D1 failure handling", "TDS §F6"]
+  priority: P0
+  section_gate: G-D1
+  program_gate: G4
+  dependencies: [ADR-011, NG-API-004]
+  status: DRAFT
+  acceptance_criteria:
+    - Killing the queue mid-stream produces no ACKed-but-lost events.
+  verification_method: {type: test, detail: "T-BRN-DURABLE-001."}
+
+- id: NG-BRN-002
+  source_ids: []
+  title: Server-derived tenant identity at ingress
+  statement: Ingress authenticates the device certificate and maps tenant, site and sensor from the server-side registry. Tenant identity is never taken from a client-supplied tenant_id alone.
+  owner: Platform Lead
+  source_refs: ["TDS §D1#60", "TDS §A1 failure handling", "TDS §E1 contracts"]
+  priority: P0
+  section_gate: G-D1
+  dependencies: [NG-SEC-003]
+  status: DRAFT
+  acceptance_criteria:
+    - Events carrying a forged tenant_id are attributed to the certificate's tenant or rejected (see FND-007).
+  verification_method: {type: test, detail: "Cross-tenant forgery test."}
+
+- id: NG-BRN-003
+  source_ids: []
+  title: Ingest validation and quotas
+  statement: Ingest validates schema, payload size, ordering and quotas.
+  owner: Platform Lead
+  source_refs: ["TDS §D1#61"]
+  priority: P0
+  section_gate: G-D1
+  dependencies: [NG-API-003]
+  status: DRAFT
+  acceptance_criteria:
+    - Oversized, malformed and over-quota batches are rejected with counters.
+  verification_method: {type: test, detail: "Ingest negative tests."}
+
+- id: NG-BRN-004
+  source_ids: []
+  title: Service-owned schemas
+  statement: Every service owns its schemas and migrations. No mutable database tables are shared between services.
+  owner: Platform Lead
+  source_refs: ["TDS §D1#59"]
+  priority: P1
+  section_gate: G-D1
+  dependencies: [ADR-020]
+  status: DRAFT
+  acceptance_criteria:
+    - The schema ownership map shows no table written by more than one service.
+  verification_method: {type: inspection, detail: "Schema ownership audit."}
+
+- id: NG-BRN-005
+  source_ids: []
+  title: Fleet inventory
+  statement: Inventory tracks last_seen, capability manifest, OS, hardware and agent versions, and policy state for every sensor.
+  owner: Platform Lead
+  source_refs: ["TDS §D1#62"]
+  priority: P1
+  section_gate: G-D1
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - The inventory API reflects sensor state within the defined staleness bound.
+  verification_method: {type: test, detail: "Inventory integration tests."}
+
+- id: NG-BRN-006
+  source_ids: []
+  title: Single artifact set for SaaS and on-prem
+  statement: The same service artifacts deploy on-prem and in SaaS. Only the infrastructure profiles differ.
+  owner: Platform Lead
+  source_refs: ["TDS §D1#67", "TDS ADR-004"]
+  priority: P0
+  section_gate: G-D1
+  dependencies: [ADR-004]
+  status: DRAFT
+  acceptance_criteria:
+    - Image digests are identical across the SaaS and on-prem deployment manifests.
+  verification_method: {type: inspection, detail: "Manifest digest comparison."}
+
+- id: NG-BRN-007
+  source_ids: []
+  title: Append-only, integrity-verified audit service
+  statement: The audit service writes an append-only log with retention and integrity verification. Normal application roles cannot mutate audit events.
+  owner: Platform Lead
+  source_refs: ["TDS §D1#66", "TDS §D3 failure handling"]
+  priority: P0
+  section_gate: G-D1
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - UPDATE/DELETE by application roles is denied. Integrity verification detects tampering.
+  verification_method: {type: test, detail: "Audit tamper tests."}
+
+- id: NG-BRN-008
+  source_ids: []
+  title: Deterministic deduplication under replay
+  statement: Replaying events with duplicates and disorder produces deterministic deduplication and a complete audit trail.
+  owner: Platform Lead
+  source_refs: ["TDS §D1 verification"]
+  priority: P1
+  section_gate: G-D1
+  dependencies: [NG-API-004]
+  status: DRAFT
+  acceptance_criteria:
+    - A replay of 1M events with duplicates and disorder gives a deterministic result.
+  verification_method: {type: test, detail: "1M-event replay test."}
+
+- id: NG-BRN-009
+  source_ids: []
+  title: Evidence-linked detection and gated response services
+  statement: The detection service consumes normalized streams and emits evidence-linked findings. The response orchestrator requires approval and safety checks before high-impact actions.
+  owner: Platform Lead
+  source_refs: ["TDS §D1#64", "TDS §D1#65", "TDS §F2 CTR-008"]
+  priority: P0
+  section_gate: G-D1
+  dependencies: [NG-AI-005, NG-POL-007]
+  status: DRAFT
+  acceptance_criteria:
+    - A high-impact response without an approval record is refused.
+  verification_method: {type: test, detail: "Response gating tests."}
+
+- id: NG-BRN-010
+  source_ids: []
+  title: Operator console
+  statement: The browser operator console authenticates through OIDC via the API gateway and audits every mutating operation. The UI technology is undecided (ADR-024).
+  owner: Platform Lead
+  source_refs: ["TDS §A1 contracts: Admin", "TDS §A1 three planes"]
+  priority: P1
+  section_gate: G-D1
+  dependencies: [ADR-024, NG-SEC-007]
+  status: DRAFT
+  acceptance_criteria:
+    - Every mutating UI action produces an audit entry.
+  verification_method: {type: test, detail: "UI e2e audit tests."}
+
+- id: NG-BRN-011
+  source_ids: []
+  title: Brain on-prem high availability
+  statement: The on-prem Brain deployment supports HA for its control services.
+  owner: Platform Lead
+  source_refs: ["TDS §F4 month 8"]
+  priority: P1
+  section_gate: G-D1
+  dependencies: [NG-BRN-006]
+  status: DRAFT
+  acceptance_criteria:
+    - Killing any single control-service replica does not interrupt policy delivery (HA topology to be defined by ADR).
+  verification_method: {type: test, detail: "Replica kill test."}
+
+# ---------------------------------------------------------------- NG-AI
+- id: NG-AI-001
+  source_ids: [NG-AI-001]
+  title: Measured detection quality and false-positive rate
+  statement: An offline benchmark reports PR-AUC, false positives per host per day, detection latency and stratification by workload. Detection quality targets are defined and measured on representative pilots.
+  owner: Detection Lead
+  source_refs: ["TDS §D4 verification", "TDS §F6"]
+  priority: P0
+  section_gate: G-D4
+  program_gate: G8
+  dependencies: [NG-AI-004]
+  status: DRAFT
+  acceptance_criteria:
+    - Targets approved and measured on pilot data (no fabricated benchmarks, TDS §E3#108).
+  verification_method: {type: test, detail: "T-AI-FP-001."}
+
+- id: NG-AI-002
+  source_ids: []
+  title: Entity/time-window feature set
+  statement: "Features per entity and time window: process ancestry rarity, first-seen binary, privilege changes, egress novelty, port distribution, file churn. A FeatureRecord holds entity_key, window_start, window_end, feature_version, values, coverage and loss_rate."
+  owner: Detection Lead
+  source_refs: ["TDS §D4#79", "TDS §D4 contracts"]
+  priority: P1
+  section_gate: G-D4
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Feature jobs are deterministic on fixture data.
+  verification_method: {type: test, detail: "Feature job unit tests."}
+
+- id: NG-AI-003
+  source_ids: []
+  title: Scoped baselines with cold-start defaults
+  statement: Baselines are scoped to tenant, site and role, with a minimum sample size and cold-start defaults.
+  owner: Detection Lead
+  source_refs: ["TDS §D4#80"]
+  priority: P1
+  section_gate: G-D4
+  dependencies: [NG-AI-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Below the minimum sample size, detectors use cold-start defaults and mark findings accordingly.
+  verification_method: {type: test, detail: "Baseline unit tests."}
+
+- id: NG-AI-004
+  source_ids: []
+  title: Rules and statistics before ML
+  statement: Detection starts with rules plus robust statistical scores. ML is introduced only after data labeling, privacy review and drift thresholds exist.
+  owner: Detection Lead
+  source_refs: ["TDS §D4#81", "TDS §D4#83"]
+  priority: P0
+  section_gate: G-D4
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Any ML model has an approved privacy review and labeled dataset before it enters shadow mode.
+  verification_method: {type: review, detail: "Model promotion review."}
+
+- id: NG-AI-005
+  source_ids: []
+  title: Explainable, evidence-backed findings (CTR-008)
+  statement: Every finding carries the detector version, features, evidence IDs, confidence, explanation and suppression history.
+  owner: Detection Lead
+  source_refs: ["TDS §D4#82", "TDS §D4 contracts", "TDS §F2 CTR-008"]
+  priority: P0
+  section_gate: G-D4
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Schema validation rejects findings that lack these fields.
+  verification_method: {type: test, detail: "Contract tests on finding.proto."}
+
+- id: NG-AI-006
+  source_ids: []
+  title: Shadow-mode promotion and safe fallback
+  statement: Every model runs in shadow mode before promotion. There is no direct ML-to-kernel deny path. A model timeout falls back to deterministic rules, never to blind blocking.
+  owner: Detection Lead
+  source_refs: ["TDS §D4#84", "TDS §D4 failure handling"]
+  priority: P0
+  section_gate: G-D4
+  dependencies: [NG-SYS-007]
+  status: DRAFT
+  acceptance_criteria:
+    - Shadow comparison and drift reports exist for every promoted model. A timeout test shows the rules fallback.
+  verification_method: {type: test, detail: "Shadow-mode and timeout tests."}
+
+- id: NG-AI-007
+  source_ids: []
+  title: Loss-aware confidence
+  statement: When telemetry loss exceeds a threshold, the system lowers confidence or suppresses unsupported detections.
+  owner: Detection Lead
+  source_refs: ["TDS §D4 failure handling"]
+  priority: P0
+  section_gate: G-D4
+  dependencies: [NG-LNX-004]
+  status: DRAFT
+  acceptance_criteria:
+    - An injected loss above the threshold changes finding confidence as specified.
+  verification_method: {type: test, detail: "Loss injection test."}
+
+# ---------------------------------------------------------------- NG-POL
+- id: NG-POL-001
+  source_ids: []
+  title: Policy lifecycle
+  statement: Policies move through DRAFT→VALIDATED→SIGNED→STAGED→CANARY→ACTIVE→ROLLBACK/EXPIRED.
+  owner: Security Lead
+  source_refs: ["TDS §D5#85"]
+  priority: P0
+  section_gate: G-D5
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Invalid lifecycle transitions are rejected by the policy service.
+  verification_method: {type: test, detail: "Policy lifecycle tests."}
+
+- id: NG-POL-002
+  source_ids: []
+  title: Capability-mapped actions; no silent unsupported enforcement
+  statement: The actions allow, audit, deny and quarantine have an explicit capability mapping per platform. A policy that a platform cannot enforce is rejected with an explicit capability reason.
+  owner: Security Lead
+  source_refs: ["TDS §D5#86", "TDS §D5 failure handling"]
+  priority: P0
+  section_gate: G-D5
+  dependencies: [NG-LNX-006]
+  status: DRAFT
+  acceptance_criteria:
+    - Sending a deny policy to a monitor-only sensor returns a capability rejection.
+  verification_method: {type: test, detail: "Capability mismatch tests."}
+
+- id: NG-POL-003
+  source_ids: []
+  title: Sensor-side policy verification
+  statement: Policies are compiled in the Brain. The sensor verifies the signature, target selector, revision monotonicity and expiration, and rejects unknown critical policy features.
+  owner: Security Lead
+  source_refs: ["TDS §D5#87", "TDS §D2 failure handling"]
+  priority: P0
+  section_gate: G-D5
+  dependencies: [NG-SEC-001, ADR-013]
+  status: DRAFT
+  acceptance_criteria:
+    - Bad-signature, replayed, downgraded and expired policies are all rejected.
+  verification_method: {type: test, detail: "Policy integrity negative suite (TDS §D5 verification)."}
+
+- id: NG-POL-004
+  source_ids: []
+  title: Protected critical-service and recovery allowlists
+  statement: A global critical-service allowlist and a local recovery allowlist are enforced and cannot be overridden remotely.
+  owner: Security Lead
+  source_refs: ["TDS §D5#88"]
+  priority: P0
+  section_gate: G-D5
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - A remote policy that tries to deny allowlisted items is rejected.
+  verification_method: {type: test, detail: "Allowlist override tests."}
+
+- id: NG-POL-005
+  source_ids: []
+  title: Shadow then canary rollout
+  statement: Policies run as dry-run shadow decisions for the pilot period, then roll out as canaries by site and ring.
+  owner: Security Lead
+  source_refs: ["TDS §D5#89"]
+  priority: P0
+  section_gate: G-D5
+  dependencies: [NG-OPS-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Shadow decision logs exist before any enforcing activation.
+  verification_method: {type: inspection, detail: "Rollout record audit."}
+
+- id: NG-POL-006
+  source_ids: []
+  title: Lease, watchdog and anti-lockout
+  statement: A watchdog and lease roll back policy on management-connectivity or health failures. Permanent host lockout is prevented through out-of-band recovery, emergency bypass and local operator break-glass.
+  owner: Security Lead
+  source_refs: ["TDS §D5#90", "TDS §D5 failure handling"]
+  priority: P0
+  section_gate: G-D5
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Rollback during a network outage succeeds. The break-glass procedure is demonstrated.
+  verification_method: {type: test, detail: "Lease expiry and break-glass drill."}
+
+- id: NG-POL-007
+  source_ids: []
+  title: Approved, time-boxed high-impact responses
+  statement: Broad quarantine and network config writes need approval and time-boxed elevation. A ResponseRequest includes approver, scope, TTL, rollback handle and idempotency key. A PolicyDecision records policy_id, revision, action, reason, subject, resource, hook, latency and override_state.
+  owner: Security Lead
+  source_refs: ["TDS §D5#91", "TDS §D5 contracts"]
+  priority: P0
+  section_gate: G-D5
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Requests without an approval, or with an expired TTL, are refused.
+  verification_method: {type: test, detail: "Response approval tests."}
+
+- id: NG-POL-008
+  source_ids: []
+  title: Policy propagation latency (provisional)
+  statement: Provisional target is policy propagation p95 < 30 s online (excluding approval), measured from signed publish to sensor ACK.
+  owner: Security Lead
+  source_refs: ["TDS §F3"]
+  priority: P1
+  section_gate: G-D5
+  dependencies: [NG-SEC-001]
+  status: DRAFT
+  acceptance_criteria:
+    - Measured under pilot load and recorded as evidence.
+  verification_method: {type: test, detail: "Propagation latency measurement."}
+
+- id: NG-POL-009
+  source_ids: []
+  title: No customer-workload prevention before safety sign-off
+  statement: Active prevention is not deployed to customer workloads before canary evidence and an independent prevention safety review. Zero unapproved critical-service lockouts are allowed in canary.
+  owner: Security Lead
+  source_refs: ["TDS §D5 gate", "TDS §F3 False positive impact", "TDS §F8#123"]
+  priority: P0
+  section_gate: G-D5
+  dependencies: [NG-POL-005]
+  status: DRAFT
+  acceptance_criteria:
+    - The independent prevention safety review is recorded in governance/approvals before any customer enablement.
+  verification_method: {type: review, detail: "Approval record check."}
+
+# ---------------------------------------------------------------- NG-SEC
+- id: NG-SEC-001
+  source_ids: [NG-SEC-001]
+  title: Signed immutable policy artifacts
+  statement: The policy service signs immutable desired-state artifacts and tracks acknowledgements. A policy service outage never creates unsigned fallback commands.
+  owner: Security Lead
+  source_refs: ["TDS §D1#63", "TDS §D1 failure handling", "TDS §F6"]
+  priority: P0
+  section_gate: G-D1
+  program_gate: G4
+  dependencies: [ADR-022, NG-SEC-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Every delivered policy verifies against the trust bundle. During a policy service outage, no command is issued.
+  verification_method: {type: test, detail: "T-SEC-SIGN-001."}
+
+- id: NG-SEC-002
+  source_ids: []
+  title: PKI hierarchy
+  statement: The PKI has an offline root CA and an online intermediate held in HSM/KMS. The policy signing algorithm (Ed25519 or ECDSA) is selected against compliance needs.
+  owner: PKI Lead
+  source_refs: ["TDS §E1 table"]
+  priority: P0
+  section_gate: G-E1
+  dependencies: [ADR-022]
+  status: DRAFT
+  acceptance_criteria:
+    - The CA ceremony is documented and the root key is offline. A CA rollover drill passes.
+  verification_method: {type: demonstration, detail: "Certificate lifecycle drill (G-E1)."}
+
+- id: NG-SEC-003
+  source_ids: []
+  title: Mutual TLS 1.3 for agent↔Brain
+  statement: Agent↔Brain traffic uses TLS 1.3 mTLS with a pinned trust bundle and supports bundle rotation.
+  owner: PKI Lead
+  source_refs: ["TDS §E1 table", "TDS ADR-008"]
+  priority: P0
+  section_gate: G-E1
+  dependencies: [NG-SEC-002]
+  status: DRAFT
+  acceptance_criteria:
+    - TLS < 1.3 and unauthenticated clients are refused. A trust-bundle rotation drill passes.
+  verification_method: {type: test, detail: "TLS negative tests and rotation drill."}
+
+- id: NG-SEC-004
+  source_ids: []
+  title: Per-device enrollment without shared secrets
+  statement: Each factory device generates a non-exportable key and CSR, and a claim workflow binds the device to a tenant and site. No bootstrap secrets are shared across units. One-time claim tokens expire and are rate-limited.
+  owner: PKI Lead
+  source_refs: ["TDS §E1#92", "TDS §E1 failure handling"]
+  priority: P0
+  section_gate: G-E1
+  dependencies: [NG-HW-005]
+  status: DRAFT
+  acceptance_criteria:
+    - Claim-token replay and brute-force attempts fail.
+  verification_method: {type: test, detail: "Replay and rate-limit adversarial tests."}
+
+- id: NG-SEC-005
+  source_ids: []
+  title: Short-lived certificates and enforced revocation
+  statement: Device and workload certificates are short-lived and rotate before expiry with overlap. Compromised devices are revoked, and revocation is enforced in both the control and ingest services. Revocation propagation and offline behavior are documented.
+  owner: PKI Lead
+  source_refs: ["TDS §E1#93", "TDS §E1#94", "TDS §E1 failure handling"]
+  priority: P0
+  section_gate: G-E1
+  dependencies: [NG-SEC-002]
+  status: DRAFT
+  acceptance_criteria:
+    - A revoked device is refused by both control and ingest. Expiry and rotation tests pass.
+  verification_method: {type: test, detail: "Cert expiry/rotation and revocation tests."}
+
+- id: NG-SEC-006
+  source_ids: []
+  title: Enrollment state model (CTR-004)
+  statement: "Enrollment states are unclaimed, pending, attested, active, suspended, revoked and retired. The certificate subject/SAN binds the stable sensor ID, and the tenant is determined by the server-side registry."
+  owner: PKI Lead
+  source_refs: ["TDS §E1 contracts", "TDS §F2 CTR-004"]
+  priority: P0
+  section_gate: G-E1
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - The enrollment.proto and SQL migrations implement the states with transition tests.
+  verification_method: {type: test, detail: "Enrollment state tests."}
+
+- id: NG-SEC-007
+  source_ids: []
+  title: Per-tenant authorization with defined roles
+  statement: Every API action is authorized per tenant. The roles are viewer, analyst, responder, admin and platform operator. Users authenticate with OIDC Authorization Code + PKCE, with MFA at the IdP.
+  owner: Security Lead
+  source_refs: ["TDS §E1#95", "TDS §E1 table: Users"]
+  priority: P0
+  section_gate: G-E1
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The role/endpoint authorization matrix tests pass.
+  verification_method: {type: test, detail: "Authorization matrix tests."}
+
+- id: NG-SEC-008
+  source_ids: []
+  title: Audited identity and privileged operations
+  statement: All identity changes and privileged operations are audited with immutable references.
+  owner: Security Lead
+  source_refs: ["TDS §E1#96"]
+  priority: P0
+  section_gate: G-E1
+  dependencies: [NG-BRN-007]
+  status: DRAFT
+  acceptance_criteria:
+    - Every identity mutation endpoint produces an audit entry.
+  verification_method: {type: test, detail: "Audit coverage tests."}
+
+- id: NG-SEC-009
+  source_ids: [SEC-001]
+  title: Threat model and prevention recovery plan
+  statement: A STRIDE-aligned threat model covering topology, trust boundaries and prevention recovery is produced and signed off by the Security Lead.
+  owner: Security Lead
+  source_refs: ["TDS §F5 SEC-001", "TDS §A1 gate", "TDS §F4 month 1"]
+  priority: P0
+  section_gate: G-A1
+  program_gate: G0
+  dependencies: [ADR-029]
+  status: DRAFT
+  acceptance_criteria:
+    - Security Lead sign-off is recorded (G0 SEC-001 pass condition).
+  verification_method: {type: review, detail: "Threat model review."}
+
+- id: NG-SEC-010
+  source_ids: []
+  title: Protected signing keys
+  statement: Signing keys are never stored in ordinary CI environment variables. They are held in KMS/HSM or a protected signing service.
+  owner: Security Lead
+  source_refs: ["TDS §E2 failure handling"]
+  priority: P0
+  section_gate: G-E2
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The CI configuration audit finds no signing material in env vars or secrets stores accessible to PR builds.
+  verification_method: {type: inspection, detail: "CI configuration audit."}
+
+- id: NG-SEC-011
+  source_ids: []
+  title: Software supply-chain transparency
+  statement: Every artifact gets a CycloneDX/SPDX SBOM and a provenance attestation. Dependencies are scanned for licenses and vulnerabilities.
+  owner: Security Lead
+  source_refs: ["TDS §E2#100", "TDS §E2 verification"]
+  priority: P0
+  section_gate: G-E2
+  dependencies: [NG-REL-003]
+  status: DRAFT
+  acceptance_criteria:
+    - Every release artifact has an SBOM and an attestation. Scan reports are attached.
+  verification_method: {type: inspection, detail: "Release artifact audit."}
+
+- id: NG-SEC-012
+  source_ids: []
+  title: Independent penetration test before release
+  statement: An independent penetration test and a pre-release independent security audit are performed, and findings are remediated.
+  owner: Security Lead
+  source_refs: ["TDS §E3 verification", "TDS §F4 month 10"]
+  priority: P0
+  section_gate: G-E3
+  program_gate: G9
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The independent report is received and critical/high findings are closed or have accepted risk.
+  verification_method: {type: review, detail: "Third-party report."}
+
+- id: NG-SEC-013
+  source_ids: []
+  title: Tenant isolation
+  statement: An automated adversarial suite finds zero cross-tenant access across every endpoint and storage query.
+  owner: Security Lead
+  source_refs: ["TDS §F3 Tenant isolation", "TDS §D1 verification", "TDS §E3#107"]
+  priority: P0
+  section_gate: G-D1
+  dependencies: [NG-DAT-002]
+  status: DRAFT
+  acceptance_criteria:
+    - The cross-tenant test matrix passes on every endpoint and query path.
+  verification_method: {type: test, detail: "Cross-tenant adversarial suite."}
+
+# ---------------------------------------------------------------- NG-API
+- id: NG-API-001
+  source_ids: [NG-API-001, API-001]
+  title: Single-source, compatibility-checked contracts
+  statement: Contracts are generated from one version-controlled .proto source. buf lint and buf breaking run on every PR, and generated code compiles in Rust (tonic/prost) and Go (grpc-go).
+  owner: Platform Lead
+  source_refs: ["TDS §D2 intro", "TDS §D2 verification", "TDS §F5 API-001", "TDS §F6"]
+  priority: P0
+  section_gate: G-D2
+  program_gate: G2
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Protobuf schemas and generated SDKs exist, and the buf breaking and compile tests pass (G0 API-001 pass condition).
+  verification_method: {type: test, detail: "T-API-COMPAT-001."}
+
+- id: NG-API-002
+  source_ids: []
+  title: v1 message set with typed payloads
+  statement: Define EventEnvelope, EnrollmentRequest/Response, HealthReport, PolicyBundle, Ack, CapabilityManifest and ResponseRequest. The opaque normalized_event bytes in the TDS skeleton are replaced by typed oneof messages before contract freeze.
+  owner: Platform Lead
+  source_refs: ["TDS §D2#68", "TDS §D2 contracts", "TDS §D2.1"]
+  priority: P0
+  section_gate: G-D2
+  dependencies: [ADR-021]
+  status: DRAFT
+  acceptance_criteria:
+    - The API council signs the v1 contracts and fixtures (G-D2). FND-007 and FND-008 are resolved.
+  verification_method: {type: review, detail: "API council review."}
+
+- id: NG-API-003
+  source_ids: []
+  title: Wire limits and malformed-frame handling
+  statement: Maximum payload bytes, batch count, decompression ratio and per-sensor rate are enforced. Malformed frames are rejected with audit counters and never reach the parser pipeline.
+  owner: Platform Lead
+  source_refs: ["TDS §D2#69", "TDS §D2 failure handling"]
+  priority: P0
+  section_gate: G-D2
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Decompression-bomb and oversize vectors are rejected.
+  verification_method: {type: test, detail: "Limit test vectors."}
+
+- id: NG-API-004
+  source_ids: []
+  title: Delivery semantics
+  statement: Delivery is at-least-once, with event_id deduplication, an ACK watermark and defined retention.
+  owner: Platform Lead
+  source_refs: ["TDS §D2#70"]
+  priority: P0
+  section_gate: G-D2
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - Duplicate and out-of-order vectors produce the specified outcome.
+  verification_method: {type: test, detail: "Golden delivery vectors."}
+
+- id: NG-API-005
+  source_ids: []
+  title: Schema evolution rules
+  statement: Fields use optional semantics. Removed field numbers are reserved and protobuf tags are never reused. Compatibility is N and N-1, and unknown telemetry fields are ignored or preserved according to the schema version.
+  owner: Platform Lead
+  source_refs: ["TDS §D2#71", "TDS §D1 contracts", "TDS §E4 failure handling"]
+  priority: P0
+  section_gate: G-D2
+  dependencies: [NG-API-001]
+  status: DRAFT
+  acceptance_criteria:
+    - buf breaking blocks tag reuse. An N-1 sensor works against an N Brain in integration tests.
+  verification_method: {type: test, detail: "Compatibility tests."}
+
+- id: NG-API-006
+  source_ids: []
+  title: Public REST API
+  statement: The public REST API lives under /api/v1, is described in OpenAPI 3.1, and ships generated SDKs and contract tests. Internal RPCs are versioned gRPC.
+  owner: Platform Lead
+  source_refs: ["TDS §D2 table", "TDS §D1 contracts"]
+  priority: P1
+  section_gate: G-D2
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The OpenAPI document validates. Contract tests run in CI.
+  verification_method: {type: test, detail: "OpenAPI validation and contract tests."}
+
+- id: NG-API-007
+  source_ids: []
+  title: Published golden test vectors
+  statement: Compatibility test vectors are published in binary and JSON. They cover missing fields, unknown enums, clock skew, duplicate events and overlong strings.
+  owner: Platform Lead
+  source_refs: ["TDS §D2#72", "TDS §D2 verification"]
+  priority: P0
+  section_gate: G-D2
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - The vector set exists and is consumed by the Rust and Go tests.
+  verification_method: {type: test, detail: "Multi-language vector tests."}
+
+- id: NG-API-008
+  source_ids: []
+  title: Identifier and time conventions
+  statement: Identifiers are opaque UUIDs (v7 or v4, per ADR-021) and never sequential integers. API times are UTC RFC3339. Host ordering uses monotonic ns plus boot_id.
+  owner: Platform Lead
+  source_refs: ["TDS §D2 table: Identifiers, Time"]
+  priority: P0
+  section_gate: G-D2
+  dependencies: [ADR-021]
+  status: DRAFT
+  acceptance_criteria:
+    - Lint rules enforce the conventions in the contracts.
+  verification_method: {type: inspection, detail: "Contract lint."}
+
+# ---------------------------------------------------------------- NG-DAT
+- id: NG-DAT-001
+  source_ids: []
+  title: Relational control-state model
+  statement: "PostgreSQL holds the control tables: tenants, sites, sensors, sensor_certificates, policy_bundles, policy_assignments, response_approvals and audit_entries. They carry tenant/site/device unique constraints and immutable enrollment identity mappings."
+  owner: Platform Lead
+  source_refs: ["TDS §D3#73", "TDS §D3 contracts", "TDS §D3.1"]
+  priority: P0
+  section_gate: G-D3
+  dependencies: [ADR-020]
+  status: DRAFT
+  acceptance_criteria:
+    - Migration integration tests pass.
+  verification_method: {type: test, detail: "Migration integration tests."}
+
+- id: NG-DAT-002
+  source_ids: []
+  title: Forced row-level security
+  statement: Every tenant-owned table has FORCE ROW LEVEL SECURITY with tenant-scoped roles and policies.
+  owner: Platform Lead
+  source_refs: ["TDS §D3.1", "TDS §D1 contracts"]
+  priority: P0
+  section_gate: G-D3
+  dependencies: [NG-DAT-001]
+  status: DRAFT
+  acceptance_criteria:
+    - Tenant RLS tests pass for every tenant-owned table.
+  verification_method: {type: test, detail: "RLS tests."}
+
+- id: NG-DAT-003
+  source_ids: []
+  title: Append-only policy revisions
+  statement: Policies are stored as append-only revisions, and the activation pointer changes transactionally.
+  owner: Platform Lead
+  source_refs: ["TDS §D3#74"]
+  priority: P0
+  section_gate: G-D3
+  dependencies: [NG-DAT-001]
+  status: DRAFT
+  acceptance_criteria:
+    - Revision rows cannot be updated. Concurrent activation tests are consistent.
+  verification_method: {type: test, detail: "Revision immutability tests."}
+
+- id: NG-DAT-004
+  source_ids: []
+  title: Transactional outbox
+  statement: Relational state changes that trigger asynchronous messages use the outbox pattern.
+  owner: Platform Lead
+  source_refs: ["TDS §D3#75"]
+  priority: P1
+  section_gate: G-D3
+  dependencies: [ADR-011]
+  status: DRAFT
+  acceptance_criteria:
+    - A crash between commit and publish neither loses nor duplicates side effects.
+  verification_method: {type: test, detail: "Outbox crash tests."}
+
+- id: NG-DAT-005
+  source_ids: []
+  title: Analytical telemetry store
+  statement: "ClickHouse is partitioned by date and ordered by tenant/site/time/event ID. Event fields are event_id, tenant_id, site_id, sensor_id, host_id, event_time, type, severity, attrs and ingest_time. TTL and deletion respect legal holds."
+  owner: Platform Lead
+  source_refs: ["TDS §D3 table", "TDS §D3#76", "TDS §D3 contracts"]
+  priority: P0
+  section_gate: G-D3
+  dependencies: [ADR-017]
+  status: DRAFT
+  acceptance_criteria:
+    - TTL deletion is verified. Legal-hold rows survive TTL.
+  verification_method: {type: test, detail: "TTL and legal-hold tests."}
+
+- id: NG-DAT-006
+  source_ids: []
+  title: Immutable encrypted evidence storage
+  statement: Evidence and session recordings are stored in encrypted, immutable object storage with retention lock where supported.
+  owner: Platform Lead
+  source_refs: ["TDS §D3 table: Object"]
+  priority: P0
+  section_gate: G-D3
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Objects under retention lock cannot be deleted or overwritten.
+  verification_method: {type: test, detail: "Retention lock tests."}
+
+- id: NG-DAT-007
+  source_ids: []
+  title: Forward-only reviewed migrations
+  statement: Migrations are forward-only and reviewed, with a rollback runbook and backups, and stay compatible with N and N-1.
+  owner: Platform Lead
+  source_refs: ["TDS §D3 table: Migrations", "TDS §D1 contracts"]
+  priority: P0
+  section_gate: G-D3
+  dependencies: [ADR-020]
+  status: DRAFT
+  acceptance_criteria:
+    - The DBA and Security Lead approve migrations (G-D3).
+  verification_method: {type: review, detail: "Migration review."}
+
+- id: NG-DAT-008
+  source_ids: []
+  title: Backup, PITR and restore drills
+  statement: Backups are encrypted. PITR and region-specific residency are in place, and restore drills are run.
+  owner: Platform Lead
+  source_refs: ["TDS §D3#78", "TDS §E4 table: DR"]
+  priority: P0
+  section_gate: G-D3
+  dependencies: [NG-SYS-005]
+  status: DRAFT
+  acceptance_criteria:
+    - A full restore drill meets the agreed RPO/RTO (targets to be defined).
+  verification_method: {type: demonstration, detail: "Restore drill."}
+
+- id: NG-DAT-009
+  source_ids: []
+  title: Complete tenant deletion
+  statement: Tenant deletion propagates through all stores and caches, with retention and legal-hold exceptions.
+  owner: Platform Lead
+  source_refs: ["TDS §D3 failure handling"]
+  priority: P0
+  section_gate: G-D3
+  dependencies: [NG-DAT-005]
+  status: DRAFT
+  acceptance_criteria:
+    - After deletion, no tenant data remains outside legal-hold scope.
+  verification_method: {type: test, detail: "Tenant deletion sweep test."}
+
+- id: NG-DAT-010
+  source_ids: []
+  title: Query budgets and ingest latency (provisional)
+  statement: Query budgets and tenant-scoped indices are specified, and explain plans are reviewed at expected volumes. The provisional ingest target is p95 < 10 s from observed to queryable under pilot load.
+  owner: Platform Lead
+  source_refs: ["TDS §D3#77", "TDS §F3 Brain ingestion"]
+  priority: P1
+  section_gate: G-D3
+  dependencies: [NG-OPS-008]
+  status: DRAFT
+  acceptance_criteria:
+    - The benchmark at documented representative load is recorded.
+  verification_method: {type: test, detail: "Ingest and dashboard benchmark."}
+
+# ---------------------------------------------------------------- NG-OPS
+- id: NG-OPS-001
+  source_ids: []
+  title: Per-unit factory acceptance
+  statement: The factory test verifies NIC ports, TPM, storage, thermals, Secure Boot and the signed image. Each device ships with a unique identity and sealed recovery instructions, and never with a universal password.
+  owner: Hardware Lead
+  source_refs: ["TDS §E4#109", "TDS §E4#110"]
+  priority: P0
+  section_gate: G-E4
+  dependencies: [NG-HW-005]
+  status: DRAFT
+  acceptance_criteria:
+    - The factory acceptance record exists for each unit.
+  verification_method: {type: test, detail: "Factory acceptance test."}
+
+- id: NG-OPS-002
+  source_ids: []
+  title: Ring-based staged rollout
+  statement: Fleet rollout moves through the rings internal→lab→pilot→canary→general, with success criteria for each ring and signed OTA metadata.
+  owner: Platform Lead
+  source_refs: ["TDS §E4#111"]
+  priority: P0
+  section_gate: G-E4
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The rollout controller refuses promotion when a ring's criteria are unmet.
+  verification_method: {type: test, detail: "OTA canary drill."}
+
+- id: NG-OPS-003
+  source_ids: []
+  title: Service-level objectives
+  statement: SLOs are defined for Brain availability, policy delivery, ingestion lag and incident response, and measured in pilots before any contractual SLA.
+  owner: Platform Lead
+  source_refs: ["TDS §E4#112", "TDS §E3#108"]
+  priority: P1
+  section_gate: G-E4
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - SLO dashboards show measured pilot values.
+  verification_method: {type: analysis, detail: "Pilot SLO report."}
+
+- id: NG-OPS-004
+  source_ids: []
+  title: Install and upgrade runbooks
+  statement: Customer on-prem install and upgrade runbooks and the SaaS region deployment profile exist.
+  owner: Platform Lead
+  source_refs: ["TDS §E4#113"]
+  priority: P1
+  section_gate: G-E4
+  dependencies: [NG-BRN-006]
+  status: DRAFT
+  acceptance_criteria:
+    - A clean-room install from the runbook succeeds.
+  verification_method: {type: demonstration, detail: "Clean-room install."}
+
+- id: NG-OPS-005
+  source_ids: []
+  title: RMA with identity revocation
+  statement: The RMA procedure revokes the device identity, wipes encrypted state and tracks custody of the returned asset.
+  owner: Hardware Lead
+  source_refs: ["TDS §E4#114"]
+  priority: P0
+  section_gate: G-E4
+  dependencies: [NG-SEC-005]
+  status: DRAFT
+  acceptance_criteria:
+    - After RMA, the device identity is rejected and the state is unrecoverable.
+  verification_method: {type: demonstration, detail: "RMA drill."}
+
+- id: NG-OPS-006
+  source_ids: []
+  title: Operational health signals
+  statement: Health reports carry heartbeat, collector coverage, event loss, queue depth, disk quota, policy revision and update slot. Metrics use Prometheus and traces use OpenTelemetry.
+  owner: Platform Lead
+  source_refs: ["TDS §E4 contracts", "TDS §E4 table: Ops"]
+  priority: P1
+  section_gate: G-E4
+  dependencies: [NG-API-002]
+  status: DRAFT
+  acceptance_criteria:
+    - HealthReport contains every listed signal.
+  verification_method: {type: test, detail: "Contract test."}
+
+- id: NG-OPS-007
+  source_ids: []
+  title: Redacted support bundles and time-limited support access
+  statement: Diagnostic bundles are redacted by default and each carries a manifest and audit record. Support access requires approval and is time-limited.
+  owner: Platform Lead
+  source_refs: ["TDS §E4 table: Support", "TDS §E4 contracts"]
+  priority: P0
+  section_gate: G-E4
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - A secret-seeded host produces a bundle with no secrets.
+  verification_method: {type: test, detail: "Redaction test."}
+
+- id: NG-OPS-008
+  source_ids: [OPS-001]
+  title: Pilot telemetry volume and resource model
+  statement: Pilot telemetry volumes and the resource sizing model are documented.
+  owner: Platform Lead
+  source_refs: ["TDS §F5 OPS-001"]
+  priority: P0
+  section_gate: G-E4
+  program_gate: G0
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Sizing assumptions are documented with their sources (G0 OPS-001 pass condition).
+  verification_method: {type: analysis, detail: "Sizing model review."}
+
+- id: NG-OPS-009
+  source_ids: []
+  title: Brain outage local protection and operator alerting
+  statement: A Brain outage leaves bounded, safe local protection in place, and operators are alerted when connectivity returns.
+  owner: Platform Lead
+  source_refs: ["TDS §E4 failure handling"]
+  priority: P0
+  section_gate: G-E4
+  dependencies: [NG-SYS-003]
+  status: DRAFT
+  acceptance_criteria:
+    - The outage drill shows local protection holding and alerts arriving after reconnect.
+  verification_method: {type: test, detail: "Brain outage drill."}
+
+# ---------------------------------------------------------------- NG-TST
+- id: NG-TST-001
+  source_ids: []
+  title: Evidence-backed verification
+  statement: Every requirement has a linked test, a measured result and a named approver. Tests are never marked passed based on generated source alone. An unknown test state is NOT_RUN, never PASS.
+  owner: QA Lead
+  source_refs: ["TDS §E3 intro", "TDS §E3 failure handling", "TDS §F8#121"]
+  priority: P0
+  section_gate: G-E3
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The governance validator rejects VERIFIED items without an evidence record.
+  verification_method: {type: test, detail: "Validator self-test."}
+
+- id: NG-TST-002
+  source_ids: []
+  title: Evidence and defect record formats
+  statement: An evidence record contains requirement_id, test_id, commit, environment_id, artifact_digest, observed_metric, result and reviewer. A defect record contains severity, repro, affected versions, mitigation, owner and gate.
+  owner: QA Lead
+  source_refs: ["TDS §E3 contracts"]
+  priority: P0
+  section_gate: G-E3
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Both formats are defined in governance/evidence/README.md and validated by tooling.
+  verification_method: {type: inspection, detail: "Schema review."}
+
+- id: NG-TST-003
+  source_ids: []
+  title: Staged CI pipeline
+  statement: The pipeline runs lint→unit→build→contract→integration→security→performance smoke→sign.
+  owner: QA Lead
+  source_refs: ["TDS §E2#99"]
+  priority: P0
+  section_gate: G-E2
+  dependencies: [ADR-023]
+  status: DRAFT
+  acceptance_criteria:
+    - The pipeline definition runs every stage and artifacts are signed only after all prior stages pass.
+  verification_method: {type: inspection, detail: "Pipeline review and run log."}
+
+- id: NG-TST-004
+  source_ids: []
+  title: Isolated privileged test runners
+  statement: A separate privileged runner pool runs eBPF and driver tests. Untrusted PRs never get kernel privilege.
+  owner: QA Lead
+  source_refs: ["TDS §E2#98"]
+  priority: P0
+  section_gate: G-E2
+  dependencies: [ADR-023]
+  status: DRAFT
+  acceptance_criteria:
+    - Fork PRs cannot schedule jobs on the privileged pool.
+  verification_method: {type: test, detail: "Runner isolation test."}
+
+- id: NG-TST-005
+  source_ids: []
+  title: Load and loss characterization
+  statement: Loss is tested under sustained and burst load, reporting events/sec, drops, CPU, RSS and p95/p99 latency.
+  owner: QA Lead
+  source_refs: ["TDS §E3#105"]
+  priority: P1
+  section_gate: G-E3
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The performance report with these metrics is attached to each release candidate.
+  verification_method: {type: test, detail: "Performance suite."}
+
+- id: NG-TST-006
+  source_ids: []
+  title: Fault injection suite
+  statement: The fault injection suite covers disk full, clock skew, certificate expiry, Brain outage, OTA interruption, reboot and crash.
+  owner: QA Lead
+  source_refs: ["TDS §E3#106"]
+  priority: P0
+  section_gate: G-E3
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Every listed fault has an automated scenario with a recorded result.
+  verification_method: {type: test, detail: "Fault injection suite."}
+
+- id: NG-TST-007
+  source_ids: []
+  title: Release-blocking defect classes
+  statement: Any kernel panic, Windows bugcheck, irreversible lockout or tenant leakage blocks release.
+  owner: QA Lead
+  source_refs: ["TDS §E3 failure handling"]
+  priority: P0
+  section_gate: G-E3
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The release gate checks for open defects of these classes.
+  verification_method: {type: inspection, detail: "Release gate checklist."}
+
+- id: NG-TST-008
+  source_ids: []
+  title: Test cadence
+  statement: Test cadence is a daily automated matrix, weekly full integration, monthly endurance and a pre-release independent security audit.
+  owner: QA Lead
+  source_refs: ["TDS §E3 verification"]
+  priority: P1
+  section_gate: G-E3
+  dependencies: [NG-TST-003]
+  status: DRAFT
+  acceptance_criteria:
+    - Scheduled pipelines exist and their run history is retained.
+  verification_method: {type: inspection, detail: "CI schedule review."}
+
+- id: NG-TST-009
+  source_ids: [ENV-001]
+  title: Reproducible reference environments with preflight
+  statement: Reference build hosts have pinned OS and toolchain manifests. An environment preflight script records machine, kernel, BTF and tool versions as evidence. An unsupported developer host reports NO-GO and never guesses compatibility.
+  owner: QA Lead
+  source_refs: ["TDS §E2#102", "TDS §E2.1", "TDS §E2 failure handling", "TDS §F5 ENV-001"]
+  priority: P0
+  section_gate: G-E2
+  program_gate: G0
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Every reference build host is reproducible, with preflight logs attached (G0 ENV-001 pass condition).
+  verification_method: {type: test, detail: "Preflight on each reference host."}
+
+- id: NG-TST-010
+  source_ids: []
+  title: No fabricated benchmarks
+  statement: A pilot baseline is defined before final performance SLAs are set. No benchmark is fabricated.
+  owner: QA Lead
+  source_refs: ["TDS §E3#108", "TDS §F3 note"]
+  priority: P0
+  section_gate: G-E3
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Every published performance figure links to an evidence record.
+  verification_method: {type: inspection, detail: "Evidence link audit."}
+
+- id: NG-TST-011
+  source_ids: []
+  title: Test environment coverage
+  statement: Test environments include QEMU/KVM kernel fixture matrices, Windows VMs, a multi-node Kubernetes lab, a virtual and physical network lab, and physical OEM hardware.
+  owner: QA Lead
+  source_refs: ["TDS §E3 table: Integration", "TDS §C1 table: Dev test", "TDS §C5 table: Lab"]
+  priority: P1
+  section_gate: G-E3
+  dependencies: [ADR-028]
+  status: DRAFT
+  acceptance_criteria:
+    - The environment inventory is documented with an owner and an access procedure.
+  verification_method: {type: inspection, detail: "Environment inventory review."}
+
+# ---------------------------------------------------------------- NG-REL
+- id: NG-REL-001
+  source_ids: []
+  title: Locked dependencies
+  statement: Lockfiles exist for Cargo, Go modules, Python (uv/pip hashes), Yocto kas and container digests. "Latest" is prohibited in release manifests.
+  owner: QA Lead
+  source_refs: ["TDS §E2#97"]
+  priority: P0
+  section_gate: G-E2
+  dependencies: [ADR-027]
+  status: DRAFT
+  acceptance_criteria:
+    - CI fails when a lockfile is missing or a manifest references an unpinned image.
+  verification_method: {type: test, detail: "CI lockfile check."}
+
+- id: NG-REL-002
+  source_ids: []
+  title: Protected release branches and two-person signing
+  statement: Release branches are protected, and signing requires two-person approval.
+  owner: QA Lead
+  source_refs: ["TDS §E2#101"]
+  priority: P0
+  section_gate: G-E2
+  dependencies: [NG-SEC-010]
+  status: DRAFT
+  acceptance_criteria:
+    - Branch protection is verified through the GitHub API, and the signing service enforces two approvers.
+  verification_method: {type: inspection, detail: "API-verified settings and signing service audit."}
+
+- id: NG-REL-003
+  source_ids: []
+  title: Build manifest and provenance
+  statement: Each build manifest records the source commit, toolchain digest, kernel/BSP revision, dependency lock hash and artifact digest. CI gates are keyed to requirement IDs and artifact provenance.
+  owner: QA Lead
+  source_refs: ["TDS §E2 contracts"]
+  priority: P0
+  section_gate: G-E2
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - Every artifact has a manifest that validates against its schema.
+  verification_method: {type: inspection, detail: "Manifest validation."}
+
+- id: NG-REL-004
+  source_ids: []
+  title: Clean-runner reproducibility and clean-room install
+  statement: A cold rebuild on a clean runner is compared by hash where reproducibility is expected. A clean-room install uses only signed packages.
+  owner: QA Lead
+  source_refs: ["TDS §E2 verification"]
+  priority: P0
+  section_gate: G-E2
+  dependencies: [NG-REL-001]
+  status: DRAFT
+  acceptance_criteria:
+    - The clean environment reproducibility and signing pipeline pass (G-E2).
+  verification_method: {type: test, detail: "Clean rebuild comparison."}
+
+- id: NG-REL-005
+  source_ids: []
+  title: Gated program releases
+  statement: The release program advances only through gates G0–G11, and GA requires an approved evidence bundle from the QA and Security leads.
+  owner: QA Lead
+  source_refs: ["TDS §F4", "TDS §E3 gate"]
+  priority: P0
+  section_gate: G-E3
+  program_gate: G11
+  dependencies: [NG-TST-001]
+  status: DRAFT
+  acceptance_criteria:
+    - Each gate approval is recorded in governance/approvals with its evidence bundle.
+  verification_method: {type: inspection, detail: "Approval register audit."}
+
+- id: NG-REL-006
+  source_ids: []
+  title: Change control and traceability on every merge
+  statement: Every change goes through a pull request with an ADR where needed, a traceability update and a contract/test impact review. Requirement→code→test traceability and the change log are updated on every merge. If the TDS, ADRs, contracts, lockfiles and evidence disagree, release is blocked until the discrepancy is resolved.
+  owner: QA Lead
+  source_refs: ["TDS document control: Change rule", "TDS §F8#122", "TDS §F9"]
+  priority: P0
+  section_gate: G-E3
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - The governance validator runs on every PR. Open conflict findings block release gates.
+  verification_method: {type: test, detail: "CI governance check."}
+
+- id: NG-REL-007
+  source_ids: [GOV-001]
+  title: Governance baseline
+  statement: Requirement IDs, owners, ADRs and the change workflow are established, and every critical decision is assigned.
+  owner: Principal Systems Architect
+  source_refs: ["TDS §F5 GOV-001"]
+  priority: P0
+  section_gate: G-A1
+  program_gate: G0
+  dependencies: []
+  status: DRAFT
+  acceptance_criteria:
+    - All critical decisions are assigned to an owner (G0 GOV-001 pass condition). This registry, the decision register and workflow.yaml are approved.
+  verification_method: {type: review, detail: "Governance baseline review."}

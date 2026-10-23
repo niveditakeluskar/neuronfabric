@@ -1,0 +1,212 @@
+# Findings register — conflicts, gaps and ambiguities found in source material or the environment.
+#
+# severity   high = blocks a G0 item or a security/ABI decision; medium = blocks a later gate; low = clarification
+# status     OPEN | RESOLVED | ACCEPTED (risk accepted with an approval reference)
+# blocks     requirement / decision / backlog IDs that must not proceed while this is OPEN
+
+schema_version: 1
+document: findings_register
+
+findings:
+- id: FND-001
+  title: Master Plan v6 and TDS v2 describe different product scopes
+  severity: high
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["Master Plan v6 §1–§6, §8–§9", "TDS v2 §F1", "TDS v2 executive decisions"]
+  description: >-
+    Master Plan v6 (15 Oct 2026, CONFIDENTIAL) specifies GPU/CPU optimization for AI data centers plus identity-first
+    AI-agent security (SPIFFE/SPIRE, MCP/tool gateway, OPA/Cedar, DCGM/NVML, React/FastAPI console), with $12.0M
+    and 67 peak FTE. TDS v2 (23 Oct 2026) specifies NeuroGuard: an OEM appliance with Yocto, Linux and Windows sensors,
+    K8s, network devices, PAM and a behavioral Brain. Neither document references the other. Overhead targets also
+    differ (Master Plan: ≤3% host CPU, ≤2% GPU regression; TDS: ≤5% of one core, ≤250 MiB RSS). The repository
+    name "neuronfabric" matches neither product name.
+  impact: The requirements baseline cannot be approved without knowing whether the Master Plan scope is in, out or deferred.
+  proposed_resolution: Decide ADR-029. Until then, this repo follows TDS v2 only (as Prompt 00 directs), and the Master Plan is recorded as related context.
+  blocks: [NG-REL-007, NG-SEC-009, ADR-029]
+
+- id: FND-002
+  title: '"Master development plan" repository structure not found'
+  severity: low
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["Prompt 00 §3", "TDS v2 §D1.1", "Master Plan v6"]
+  description: >-
+    Prompt 00 says to use the repository structure from the master development plan. None of the supplied documents
+    contains one except TDS v2 §D1.1 (and TDS v1 §17, which v2 supersedes). The numbered docs/ paths named in Prompt 00
+    (00-, 02-, 16-, 20-) do not appear in any document.
+  impact: The layout is partly an engineering choice.
+  proposed_resolution: TDS §D1.1 is used with additions recorded in ADR-030. Supply the master development plan if a different one exists.
+  blocks: []
+
+- id: FND-003
+  title: ADRs marked "Confirmed" in the TDS have no recorded approval
+  severity: medium
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 executive decisions ADR-001..005", "TDS v2 §F9 sign-off register"]
+  description: TDS v2 lists ADR-001 to ADR-005 as "Confirmed", but every approver in the §F9 sign-off register is PENDING.
+  impact: These decisions are recorded as REVIEW, not APPROVED, to avoid fabricating approvals.
+  proposed_resolution: Record approvals for ADR-001..005 in governance/approvals/approval_register.yaml.
+  blocks: []
+
+- id: FND-004
+  title: G0 checklist requires work that F4 schedules for Month 2 / G1
+  severity: medium
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 §F5 OS-001, KRN-001", "TDS v2 §F4 months 1–2"]
+  description: >-
+    The F5 G0 checklist requires OS-001 ("Yocto minimal signed boot POC — boot verified on physical hardware") and
+    KRN-001 ("eBPF probe load/attach on selected kernel"). F4 schedules "Yocto boot image; Linux eBPF minimal agent"
+    in Month 2 with gate "G1 kernel attach + signed boot POC". G0 is the Month-1 gate.
+  impact: G0 cannot pass as written in Month 1, and the work order is ambiguous.
+  proposed_resolution: Either move OS-001/KRN-001 to G1, or redefine G0 to allow feasibility evidence (e.g. a VM/eval board) with physical hardware at G1.
+  blocks: [NG-OS-003, NG-LNX-006]
+
+- id: FND-005
+  title: Two gate namespaces with no mapping
+  severity: medium
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 §A1–§E4 section gates", "TDS v2 §F4 program gates", "TDS v2 §F6"]
+  description: >-
+    Section gates (G-A1 … G-E4) and program gates (G0 … G11) are never mapped to each other. F6 also assigns
+    NG-HW-001 to G1 (Month 2), while G-B1 needs a frozen SKU plus 72-hour thermal and 100 power-cut cycles,
+    which F4 schedules for Month 8 ("Hardware stress").
+  impact: Requirements can't be scheduled consistently. In the registry, program_gate is set only where the TDS states it.
+  proposed_resolution: Approve a section-gate → program-gate mapping (draft in docs/20-release-management/release_gates.md).
+  blocks: []
+
+- id: FND-006
+  title: Kernel event ABI (CTR-001) field names inconsistent
+  severity: high
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 §C1 contracts", "TDS v2 §C1.1", "TDS v2 §C2#30"]
+  description: >-
+    The §C1 interface list names fields "boot_ns" and "size". The §C1.1 struct uses "monotonic_ns" and "total_len".
+    The struct has no boot_id, yet §C2#30 keys the process cache on boot_id + pid + start_time. The struct's field
+    order also leaves no explicit padding policy.
+  impact: This is an ABI decision. The TDS (§F8-120) requires stopping for an ADR.
+  proposed_resolution: The CTR-001 contract owner (Kernel Lead) publishes a header with explicit names, sizes, padding and boot_id sourcing (userspace from /proc/sys/kernel/random/boot_id).
+  blocks: [NG-LNX-003, NG-LNX-001, NG-RST-003]
+
+- id: FND-007
+  title: Sensor-supplied tenant_id conflicts with server-derived tenancy
+  severity: high
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 §A1 failure handling", "TDS v2 §D2 contracts SensorEvent", "TDS v2 §D2.1"]
+  description: >-
+    §A1 requires tenant identity to come from the authenticated credential, never from a client-supplied tenant_id.
+    The SensorEvent contract nevertheless includes tenant_id (and site_id), while the D2.1 EventEnvelope omits them.
+  impact: This is a security semantics decision for the v1 contract.
+  proposed_resolution: Define tenant_id/site_id as server-stamped after authentication. Sensor-supplied values are dropped or must match, else the event is rejected.
+  blocks: [NG-API-002, NG-BRN-002]
+
+- id: FND-008
+  title: EventEnvelope carries opaque payload bytes
+  severity: medium
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 §D2.1"]
+  description: The illustrative EventEnvelope uses `bytes normalized_event`. The TDS itself says to replace it with typed oneof messages before contract freeze.
+  impact: The contract can't be frozen until this is done.
+  proposed_resolution: Define typed oneof payload messages in the v1 events.proto draft.
+  blocks: [NG-API-002]
+
+- id: FND-009
+  title: Operator web console stack unspecified; Master Plan conflicts with ADR-007
+  severity: low
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 §A1", "TDS v2 ADR-007", "Master Plan v6 §3"]
+  description: TDS v2 mentions an operator UI but names no technology. Master Plan v6 specifies React + FastAPI, while ADR-007 sets Go for the Brain services.
+  impact: The brain/web work can't start.
+  proposed_resolution: Decide ADR-024.
+  blocks: [NG-BRN-010]
+
+- id: FND-010
+  title: Supported platform matrix is undefined (incl. aarch64)
+  severity: medium
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 §C1 table: Dev test", "TDS v2 §C3#39", "TDS v2 §C4"]
+  description: >-
+    §C1 lists QEMU aarch64 in the dev test matrix, but the appliance is x86_64-only and no section states whether
+    aarch64 workload hosts are supported. The supported Linux distributions and kernels for host agents, Windows
+    builds and Kubernetes versions are not enumerated.
+  impact: The CI matrix, test environments and the G0 WIN-001 build matrix can't be defined.
+  proposed_resolution: Decide ADR-028.
+  blocks: [NG-WIN-005, NG-TST-011]
+
+- id: FND-011
+  title: Local workstation is not a supported reference host
+  severity: medium
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 §E2 table: Developer", "TDS v2 §E2 failure handling", "docs/16-development-environments/reports/"]
+  description: >-
+    This workstation is macOS 27.0.1 on arm64. TDS §E2 requires Ubuntu 24.04 LTS x86_64 (or a Linux VM) for kernel
+    and Yocto builds, and Windows with the WDK for driver work. Rust, Go, CMake, LLVM tools, bpftool, buf/protoc and kas are
+    not installed. Python is 3.9.6 (the TDS candidate is 3.12). PyYAML is not installed.
+  impact: The local host is NO-GO for eBPF, Yocto and Windows driver work. It is suitable for governance, docs and contract drafting.
+  proposed_resolution: Provision reference Linux x86_64 and Windows build hosts (WI-005). Install the user-space toolchains locally only with approval.
+  blocks: []
+
+- id: FND-012
+  title: CODEOWNERS teams and branch protection unverified
+  severity: medium
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: [".github/CODEOWNERS", "git remote"]
+  description: >-
+    The remote is a personal GitHub account (git@github.com:niveditakeluskar/neuronfabric.git). The CODEOWNERS team handles
+    are placeholders and teams can't exist outside an organization. The gh CLI is not installed, so branch protection
+    could not be inspected.
+  impact: The merge controls described in CONTRIBUTING.md are not enforced.
+  proposed_resolution: Move the repo to an organization or use individual handles. Configure and verify protection through the API (WI-003, WI-004).
+  blocks: []
+
+- id: FND-013
+  title: Controlled source documents vs hosted repository
+  severity: medium
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 header: Internal / Controlled", "Master Plan v6 header: CONFIDENTIAL"]
+  description: >-
+    The governing spec is classified Internal/Controlled, and the Master Plan is CONFIDENTIAL (it includes budget and staffing).
+    The remote's visibility and access are unverified. The originals were therefore not committed. Only SHA-256 identifiers
+    and derived engineering content are tracked.
+  impact: Contributors need out-of-band access to the originals.
+  proposed_resolution: Decide ADR-031 (where the originals live and who can access them).
+  blocks: []
+
+- id: FND-014
+  title: Several owner roles are not defined in the TDS approver list
+  severity: low
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v2 document control: Approvers", "TDS v2 §F2", "TDS v2 §F9"]
+  description: >-
+    §F2 names PKI Lead, K8s Lead, Network Lead and Detection Lead as contract owners, but these roles are absent from the approver list
+    and the §F9 sign-off register. No PAM owner, Rust runtime owner, DBA, security contact or release manager is named.
+    No role is assigned to a person.
+  impact: Approval authority is incomplete for those areas. In this registry, NG-RST is owned by the Kernel Lead and NG-PAM by the Security Lead for now.
+  proposed_resolution: Assign named people to all roles (WI-003).
+  blocks: []
+
+- id: FND-015
+  title: TDS v1 details absent from v2 without recorded rationale
+  severity: low
+  status: OPEN
+  raised_on: "2026-10-23"
+  sources: ["TDS v1 (superseded)", "TDS v2 §B2, §C2"]
+  description: >-
+    TDS v1 specified a dm-verity rootfs, an anti-rollback monotonic version policy, TPM PCR-sealed bootstrap secrets and
+    Unix SOCK_SEQPACKET + SO_PEERCRED IPC. v2 keeps only the generic forms ("read-only rootfs", "peer credential
+    validation") and has no anti-rollback requirement.
+  impact: Security-relevant controls may have been dropped unintentionally.
+  proposed_resolution: The OS Lead and Security Lead confirm whether to re-adopt them (anti-rollback especially affects NG-OS-001/NG-POL-003).
+  blocks: []

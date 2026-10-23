@@ -1,0 +1,115 @@
+# Program risk register. Likelihood/impact: 1 (low) – 5 (high). Scores are initial judgments, not measurements.
+
+schema_version: 1
+document: risk_register
+
+risks:
+- id: RSK-001
+  title: First-release scope breadth vs 12-month horizon
+  description: Appliance hardware, Yocto, Linux eBPF, Windows driver, K8s, network devices, PAM, SaaS + on-prem Brain, detection and prevention all in release 1 (ADR-003/005).
+  likelihood: 4
+  impact: 5
+  owner: Product Owner
+  mitigation: Make F1 boundaries explicit; define a cut-line per gate; resolve ADR-029 so the Master Plan scope does not add to release 1 implicitly.
+  related: [ADR-003, ADR-029, FND-001]
+  status: OPEN
+
+- id: RSK-002
+  title: Scarce kernel, Windows driver and identity talent
+  description: Critical areas depend on scarce specialists. Single points of failure are likely early on.
+  likelihood: 4
+  impact: 4
+  owner: Principal Systems Architect
+  mitigation: Hire leads first; name deputies; keep runbooks; prequalify a contractor bench (Master Plan §8 and §17).
+  related: [FND-014]
+  status: OPEN
+
+- id: RSK-003
+  title: Windows driver signing and HVCI compatibility timeline
+  description: Microsoft attestation/HLK signing, HVCI compatibility and the WFP callout validation have external lead times.
+  likelihood: 3
+  impact: 4
+  owner: Windows Lead
+  mitigation: ETW-first; produce the WIN-001 feasibility report at G0; minimize driver scope (ADR-010).
+  related: [NG-WIN-005, ADR-010]
+  status: OPEN
+
+- id: RSK-004
+  title: OEM hardware procurement and BSP support delays
+  description: SKU availability, BSP kernel support for BTF/BPF LSM, and TPM part lead times.
+  likelihood: 3
+  impact: 4
+  owner: Hardware Lead
+  mitigation: Qualify two vendors (ADR-015); use eval boards and VMs for early work; send RFQs in Month 1.
+  related: [ADR-009, ADR-015, NG-HW-002]
+  status: OPEN
+
+- id: RSK-005
+  title: Prevention false positives cause customer outages or lockouts
+  description: Active prevention in release 1 risks blocking critical services or management access.
+  likelihood: 3
+  impact: 5
+  owner: Security Lead
+  mitigation: Observe-only defaults, shadow mode, canary rings, protected allowlists, lease rollback, break-glass, independent safety review (G-D5).
+  related: [NG-POL-004, NG-POL-006, NG-POL-009]
+  status: OPEN
+
+- id: RSK-006
+  title: Kernel feature variance across customer hosts
+  description: BPF LSM, BTF and cgroup features vary by distribution and kernel, which reduces enforceable coverage.
+  likelihood: 4
+  impact: 3
+  owner: Kernel Lead
+  mitigation: Capability matrix, honest degraded reporting, a defined supported platform matrix (ADR-028).
+  related: [NG-LNX-006, ADR-028]
+  status: OPEN
+
+- id: RSK-007
+  title: Sensor overhead exceeds customer tolerance
+  description: Telemetry volume and enrichment cost may exceed the provisional RSS/CPU targets.
+  likelihood: 3
+  impact: 3
+  owner: Kernel Lead
+  mitigation: In-kernel filtering, sampling, priority drop, performance budgets in CI.
+  related: [NG-RST-010, NG-TST-005]
+  status: OPEN
+
+- id: RSK-008
+  title: Cross-tenant data exposure in the multi-tenant Brain
+  description: A tenancy bug in API, queue, storage or cache paths exposes another tenant's data.
+  likelihood: 2
+  impact: 5
+  owner: Security Lead
+  mitigation: Server-derived tenancy (FND-007), forced RLS, a cross-tenant adversarial suite on every endpoint.
+  related: [NG-SEC-013, NG-DAT-002, NG-BRN-002]
+  status: OPEN
+
+- id: RSK-009
+  title: Detection quality unproven; no labeled data at start
+  description: Without labeled pilot data, detection targets can't be set credibly.
+  likelihood: 4
+  impact: 3
+  owner: Detection Lead
+  mitigation: Rules and robust statistics first; collect labeled scenarios from lab red-team runs; shadow mode in pilots.
+  related: [NG-AI-001, NG-AI-004]
+  status: OPEN
+
+- id: RSK-010
+  title: Supply-chain or signing-key compromise
+  description: A compromised build pipeline or key would allow malicious sensors, policies or OTA images.
+  likelihood: 2
+  impact: 5
+  owner: Security Lead
+  mitigation: HSM/KMS signing, two-person approval, SBOM and provenance, isolated runners, reproducible builds.
+  related: [NG-SEC-010, NG-SEC-011, NG-REL-002]
+  status: OPEN
+
+- id: RSK-011
+  title: Controlled specification content leaks via the hosted repository
+  description: Derived engineering content and any committed originals may be visible beyond need-to-know.
+  likelihood: 2
+  impact: 3
+  owner: Principal Systems Architect
+  mitigation: Keep originals out of Git; verify remote visibility; restrict collaborators (ADR-031).
+  related: [FND-013, ADR-031]
+  status: OPEN

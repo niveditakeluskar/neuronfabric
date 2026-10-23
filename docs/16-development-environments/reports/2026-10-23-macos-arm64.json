@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "document": "environment_report",
+  "generated_at_utc": "2026-10-23T11:36:08Z",
+  "generator": "tools/bootstrap/check_prereqs.sh",
+  "host": {
+    "os": "Darwin",
+    "os_name": "macOS 27.0.1",
+    "kernel": "27.0.0",
+    "arch": "arm64",
+    "is_reference_linux_build_host": "no",
+    "btf_vmlinux": "n/a",
+    "bpf_kernel_config": "n/a"
+  },
+  "python_modules": {"yaml": "missing"},
+  "tools": [{"name":"git","status":"present","version":"git version 2.50.1 (Apple Git-155)","needed_by":"all"},{"name":"python3","status":"present","version":"Python 3.9.6","needed_by":"governance,analytics"},{"name":"docker","status":"present","version":"Docker version 29.8.2, build 7fc2dff","needed_by":"brain-dev,tests"},{"name":"ruby","status":"present","version":"ruby 2.6.10p210 (2022-04-12 revision 67958) [universal.arm64e-darwin26]","needed_by":"governance(yaml-fallback)"},{"name":"rustup","status":"missing","version":"","needed_by":"linux-agent"},{"name":"rustc","status":"missing","version":"","needed_by":"linux-agent"},{"name":"cargo","status":"missing","version":"","needed_by":"linux-agent"},{"name":"clang","status":"present","version":"Apple clang version 17.0.0 (clang-1700.6.3.2)","needed_by":"ebpf"},{"name":"llvm-config","status":"missing","version":"","needed_by":"ebpf"},{"name":"llvm-strip","status":"missing","version":"","needed_by":"ebpf"},{"name":"bpftool","status":"missing","version":"","needed_by":"ebpf"},{"name":"pahole","status":"missing","version":"","needed_by":"ebpf"},{"name":"make","status":"present","version":"GNU Make 3.81","needed_by":"ebpf"},{"name":"cmake","status":"missing","version":"","needed_by":"ebpf"},{"name":"qemu-system-x86_64","status":"missing","version":"","needed_by":"kernel-tests"},{"name":"go","status":"missing","version":"","needed_by":"brain,network"},{"name":"node","status":"present","version":"v26.10.0","needed_by":"web"},{"name":"npm","status":"present","version":"11.19.1","needed_by":"web"},{"name":"buf","status":"missing","version":"","needed_by":"contracts"},{"name":"protoc","status":"missing","version":"","needed_by":"contracts"},{"name":"kas","status":"missing","version":"","needed_by":"yocto"},{"name":"bitbake","status":"missing","version":"","needed_by":"yocto"},{"name":"kubectl","status":"present","version":"Client Version: v1.36.1","needed_by":"kubernetes"},{"name":"helm","status":"missing","version":"","needed_by":"kubernetes"},{"name":"kind","status":"missing","version":"","needed_by":"kubernetes"},{"name":"gh","status":"missing","version":"","needed_by":"github-verification"},{"name":"shellcheck","status":"missing","version":"","needed_by":"lint"},{"name":"yamllint","status":"missing","version":"","needed_by":"lint"},{"name":"uv","status":"missing","version":"","needed_by":"analytics"},{"name":"pandoc","status":"missing","version":"","needed_by":"docs"},{"name":"pdftotext","status":"missing","version":"","needed_by":"docs"},{"name":"textutil","status":"present","version":"textutil: [command_option] [other_options] file...","needed_by":"docs(macOS)"}],
+  "component_readiness": {
+    "governance_docs": "GO",
+    "contracts": "NO-GO",
+    "linux_ebpf": "NO-GO",
+    "rust_agent": "NO-GO",
+    "yocto": "NO-GO",
+    "brain_go": "NO-GO",
+    "web_console": "GO",
+    "kubernetes_dev": "NO-GO",
+    "windows_driver": "NO-GO"
+  },
+  "notes": "Presence of tools/config does not prove hook-specific attach success (TDS E2.1). Hostname and username intentionally omitted."
+}
